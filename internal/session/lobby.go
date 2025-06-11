@@ -2,6 +2,7 @@ package session
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 	"sync"
 	"time"
@@ -54,7 +55,8 @@ func CreateLobby(hostName string) *Lobby {
 func JoinLobby(lobbyID, guesserName string) (*Lobby, error) {
 	lobbiesMu.Lock()
 	defer lobbiesMu.Unlock()
-
+	fmt.Printf("lobbyID = [%s]\n", lobbyID)
+	fmt.Println("WHYYY")
 	lobby, exists := lobbies[lobbyID]
 	if !exists {
 		return nil, errors.New("lobby not found")

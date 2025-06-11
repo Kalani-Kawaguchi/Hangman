@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -23,6 +24,7 @@ func main() {
 	r := mux.NewRouter()
 
 	// Routes
+	r.HandleFunc("/", handleRoot)
 	r.HandleFunc("/create-lobby", handleCreateLobby).Methods("POST")
 	r.HandleFunc("/join-lobby", handleJoinLobby).Methods("POST")
 	r.HandleFunc("/lobby/{id}", handleGetLobby).Methods("GET")
@@ -30,6 +32,10 @@ func main() {
 	// Start server
 	log.Println("Hangman running on :8080")
 	log.Fatal(http.ListenAndServe(":8080", r))
+}
+
+func handleRoot(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Hangman Multiplayer Game")
 }
 
 // Handlers
@@ -42,6 +48,7 @@ func handleCreateLobby(w http.ResponseWriter, r *http.Request) {
 
 	lobby := session.CreateLobby(req.Host)
 	json.NewEncoder(w).Encode(lobby)
+	fmt.Fprintf(w, "Created A Lobby")
 }
 
 func handleJoinLobby(w http.ResponseWriter, r *http.Request) {
@@ -58,6 +65,7 @@ func handleJoinLobby(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(lobby)
+	fmt.Fprintf(w, "Joined lobby")
 }
 
 func handleGetLobby(w http.ResponseWriter, r *http.Request) {
