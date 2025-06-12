@@ -75,7 +75,8 @@ func handleChooseword(w http.ResponseWriter, r *http.Request) {
 	// Once the word is given it's passed into game struct
 	// Once both games are created lobby set to ready
 	// once lobby is ready both games will start
-	// Look into web sockets
+	// Change lobby struct to have game1 and game2
+	// Look into web sockets to figure out how to connect both players and show the games concurrently
 	return
 }
 
