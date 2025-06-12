@@ -2,7 +2,6 @@ package session
 
 import (
 	"errors"
-	"fmt"
 	"math/rand"
 	"sync"
 	"time"
@@ -19,6 +18,7 @@ const (
 
 type Lobby struct {
 	ID       string     `json:"id"`
+	Name     string     `json:"name"`
 	Host     string     `json:"host"`
 	Guesser  string     `json:"guesser,omitempty"`
 	State    LobbyState `json:"state"`
@@ -35,13 +35,14 @@ var (
 )
 
 // CreateLobby initializes a new lobby and returns it
-func CreateLobby(hostName string) *Lobby {
+func CreateLobby(name string, hostName string) *Lobby {
 	lobbiesMu.Lock()
 	defer lobbiesMu.Unlock()
 
 	id := generateLobbyID()
 	lobby := &Lobby{
 		ID:      id,
+		Name:    name,
 		Host:    hostName,
 		State:   StateWaiting,
 		Created: time.Now(),
@@ -55,8 +56,6 @@ func CreateLobby(hostName string) *Lobby {
 func JoinLobby(lobbyID, guesserName string) (*Lobby, error) {
 	lobbiesMu.Lock()
 	defer lobbiesMu.Unlock()
-	fmt.Printf("lobbyID = [%s]\n", lobbyID)
-	fmt.Println("WHYYY")
 	lobby, exists := lobbies[lobbyID]
 	if !exists {
 		return nil, errors.New("lobby not found")
@@ -86,8 +85,7 @@ func GetLobby(lobbyID string) (*Lobby, error) {
 func generateLobbyID() string {
 	const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	const length = 6
-	rand.Seed(time.Now().UnixNano())
-
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 	id := make([]byte, length)
 	for i := range id {
 		id[i] = letters[rand.Intn(len(letters))]
