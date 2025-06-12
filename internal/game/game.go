@@ -143,7 +143,7 @@ func (g *Game) checkGameStatus() {
 
 func (g *Game) DisplayState() {
 	fmt.Println("\nWord:", string(g.Revealed))
-	fmt.Printf("Guessed Left: %d\n", g.AttemptsLeft)
+	fmt.Printf("Guesses Left: %d\n", g.AttemptsLeft)
 	fmt.Printf("Guessed letters: ")
 	for _, letter := range g.GuessedLetters {
 		fmt.Printf("%c ", letter)
