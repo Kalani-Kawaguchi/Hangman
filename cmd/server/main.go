@@ -1,42 +1,82 @@
 package main
 
 import (
-	"bufio"
+	"encoding/json"
 	"fmt"
-	"os"
-	"strings"
+	"log"
+	"net/http"
 
-	"github.com/Kalani-Kawaguchi/Hangman/internal/game"
+	"github.com/Kalani-Kawaguchi/Hangman/internal/session"
+	"github.com/gorilla/mux"
 )
 
+// Request/Response Structs
+type CreateLobbyRequest struct {
+	Host string `json:"host"`
+}
+
+type JoinLobbyRequest struct {
+	LobbyID string `json:"lobby_id"`
+	Name    string `json:"name"`
+}
+
 func main() {
-	scanner := bufio.NewScanner(os.Stdin)
-	word := "Gopher"
-	hangmanGame := game.NewGame(word, 6)
+	r := mux.NewRouter()
 
-	fmt.Println("Welcome to Hangman!")
-	for hangmanGame.Status == game.InProgress {
-		hangmanGame.DisplayState()
-		fmt.Print("Enter a letter: ")
+	// Routes
+	r.HandleFunc("/", handleRoot)
+	r.HandleFunc("/create-lobby", handleCreateLobby).Methods("POST")
+	r.HandleFunc("/join-lobby", handleJoinLobby).Methods("POST")
+	r.HandleFunc("/lobby/{id}", handleGetLobby).Methods("GET")
 
-		if !scanner.Scan() {
-			break
-		}
+	// Start server
+	log.Println("Hangman running on :8080")
+	log.Fatal(http.ListenAndServe(":8080", r))
+}
 
-		input := strings.TrimSpace(scanner.Text())
-		if len(input) != 1 {
-			fmt.Println("Please enter a single letter.")
-			continue
-		}
+func handleRoot(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Hangman Multiplayer Game")
+}
 
-		hangmanGame.Guess(rune(input[0]))
+// Handlers
+func handleCreateLobby(w http.ResponseWriter, r *http.Request) {
+	var req CreateLobbyRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
 	}
 
-	hangmanGame.DisplayState()
-	switch hangmanGame.Status {
-	case game.Won:
-		fmt.Println("You Won! The word was: ", hangmanGame.Word)
-	case game.Lost:
-		fmt.Println("Game Over! The word was: ", hangmanGame.Word)
+	lobby := session.CreateLobby(req.Host)
+	json.NewEncoder(w).Encode(lobby)
+	fmt.Fprintf(w, "Created A Lobby")
+}
+
+func handleJoinLobby(w http.ResponseWriter, r *http.Request) {
+	var req JoinLobbyRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
 	}
+
+	lobby, err := session.JoinLobby(req.LobbyID, req.Name)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	json.NewEncoder(w).Encode(lobby)
+	fmt.Fprintf(w, "Joined lobby")
+}
+
+func handleGetLobby(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	lobby, err := session.GetLobby(id)
+	if err != nil {
+		http.Error(w, "lobby not found", http.StatusNotFound)
+		return
+	}
+
+	json.NewEncoder(w).Encode(lobby)
 }
