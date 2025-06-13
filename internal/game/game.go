@@ -55,7 +55,6 @@ const (
 
 func ValidateLetter(r rune) bool {
 	if !unicode.IsLetter(r) || (r > unicode.MaxASCII || (r < 'A' || (r > 'Z' && r < 'a') || r > 'z')) {
-		fmt.Println("The only letters from the English alphabet are accepted.")
 		return false
 	}
 
@@ -64,7 +63,6 @@ func ValidateLetter(r rune) bool {
 
 func ValidateWord(word string) bool {
 	if len(word) < 5 {
-		fmt.Println("The word must be at least 5 characters.")
 		return false
 	}
 
@@ -75,11 +73,13 @@ func ValidateWord(word string) bool {
 	return true
 }
 
+
 func NewGame(word string) Game {
 	revealed := make([]rune, len(word))
 	for i := range revealed {
 		revealed[i] = '_'
 	}
+  
 	return Game{
 		Word:           strings.ToLower(word),
 		Revealed:       revealed,
