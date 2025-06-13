@@ -12,6 +12,7 @@ import (
 
 // Request/Response Structs
 type CreateLobbyRequest struct {
+	Name string `json:"name"`
 	Host string `json:"host"`
 }
 
@@ -46,7 +47,7 @@ func handleCreateLobby(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	lobby := session.CreateLobby(req.Host)
+	lobby := session.CreateLobby(req.Name, req.Host)
 	json.NewEncoder(w).Encode(lobby)
 	fmt.Fprintf(w, "Created A Lobby")
 }
@@ -66,6 +67,17 @@ func handleJoinLobby(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(lobby)
 	fmt.Fprintf(w, "Joined lobby")
+}
+
+func handleChooseword(w http.ResponseWriter, r *http.Request) {
+	// TODO:
+	// Once Host and Guesser fields are filled we need to have them both choose a word
+	// Once the word is given it's passed into game struct
+	// Once both games are created lobby set to ready
+	// once lobby is ready both games will start
+	// Change lobby struct to have game1 and game2
+	// Look into web sockets to figure out how to connect both players and show the games concurrently
+	return
 }
 
 func handleGetLobby(w http.ResponseWriter, r *http.Request) {
