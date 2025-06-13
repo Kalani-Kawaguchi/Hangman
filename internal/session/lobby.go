@@ -2,6 +2,8 @@ package session
 
 import (
 	"errors"
+	"fmt"
+	"github.com/Kalani-Kawaguchi/Hangman/internal/game"
 	"math/rand"
 	"sync"
 	"time"
@@ -17,15 +19,19 @@ const (
 )
 
 type Lobby struct {
-	ID       string     `json:"id"`
-	Name     string     `json:"name"`
-	Host     string     `json:"host"`
-	Guesser  string     `json:"guesser,omitempty"`
-	State    LobbyState `json:"state"`
-	Created  time.Time  `json:"created"`
-	Word     string     `json:"-"` // hidden from API response
-	Attempts int        `json:"attempts"`
-	Guesses  []string   `json:"guesses"`
+	ID      string     `json:"id"`
+	Name    string     `json:"name"`
+	Player1 string     `json:"player1"`
+	Player2 string     `json:"player2,omitempty"`
+	State   LobbyState `json:"state"`
+	Created time.Time  `json:"created"`
+	Game1   game.Game
+	Game2   game.Game
+}
+
+// Might move this somewhere else
+type WordRequest struct {
+	Word string `json:"word"`
 }
 
 // Thread-safe map to store active lobbies
@@ -35,7 +41,7 @@ var (
 )
 
 // CreateLobby initializes a new lobby and returns it
-func CreateLobby(name string, hostName string) *Lobby {
+func CreateLobby(name string, player1 string) *Lobby {
 	lobbiesMu.Lock()
 	defer lobbiesMu.Unlock()
 
@@ -43,28 +49,29 @@ func CreateLobby(name string, hostName string) *Lobby {
 	lobby := &Lobby{
 		ID:      id,
 		Name:    name,
-		Host:    hostName,
+		Player1: player1,
 		State:   StateWaiting,
 		Created: time.Now(),
 	}
 
 	lobbies[id] = lobby
+
 	return lobby
 }
 
 // JoinLobby assigns a guesser to an existing lobby
-func JoinLobby(lobbyID, guesserName string) (*Lobby, error) {
+func JoinLobby(lobbyID, player2 string) (*Lobby, error) {
 	lobbiesMu.Lock()
 	defer lobbiesMu.Unlock()
 	lobby, exists := lobbies[lobbyID]
 	if !exists {
 		return nil, errors.New("lobby not found")
 	}
-	if lobby.Guesser != "" {
-		return nil, errors.New("lobby already has a guesser")
+	if lobby.Player2 != "" {
+		return nil, errors.New("lobby already full")
 	}
 
-	lobby.Guesser = guesserName
+	lobby.Player2 = player2
 	lobby.State = StateReady
 	return lobby, nil
 }
@@ -73,10 +80,15 @@ func JoinLobby(lobbyID, guesserName string) (*Lobby, error) {
 func GetLobby(lobbyID string) (*Lobby, error) {
 	lobbiesMu.Lock()
 	defer lobbiesMu.Unlock()
+	fmt.Println("Available lobbies:")
+	for id := range lobbies {
+		fmt.Println("-", id)
+	}
 
 	lobby, ok := lobbies[lobbyID]
 	if !ok {
-		return nil, errors.New("lobby not found")
+		fmt.Println(lobbyID)
+		return nil, errors.New(lobbyID)
 	}
 	return lobby, nil
 }

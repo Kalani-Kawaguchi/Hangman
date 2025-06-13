@@ -73,15 +73,17 @@ func ValidateWord(word string) bool {
 	return true
 }
 
-func NewGame(word string, maxAttempts int) *Game {
+
+func NewGame(word string) Game {
 	revealed := make([]rune, len(word))
 	for i := range revealed {
 		revealed[i] = '_'
 	}
-	return &Game{
+  
+	return Game{
 		Word:           strings.ToLower(word),
 		Revealed:       revealed,
-		AttemptsLeft:   maxAttempts,
+		AttemptsLeft:   6,
 		Letters:        letters,
 		GuessedLetters: make([]rune, 0, 26),
 		Status:         InProgress,
