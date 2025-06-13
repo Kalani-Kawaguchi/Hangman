@@ -73,13 +73,12 @@ func ValidateWord(word string) bool {
 	return true
 }
 
-
 func NewGame(word string) Game {
 	revealed := make([]rune, len(word))
 	for i := range revealed {
 		revealed[i] = '_'
 	}
-  
+
 	return Game{
 		Word:           strings.ToLower(word),
 		Revealed:       revealed,
@@ -98,7 +97,6 @@ func (g *Game) Guess(letter rune) bool {
 	letter = unicode.ToLower(letter)
 
 	if g.Letters[letter] {
-		fmt.Println("You already guessed that letter.")
 		return false
 	}
 

@@ -22,6 +22,10 @@ type JoinLobbyRequest struct {
 	PlayerName string `json:"player_name"`
 }
 
+type LetterRequest struct {
+	Letter string `json:"guess"`
+}
+
 func main() {
 	r := mux.NewRouter()
 
@@ -30,6 +34,7 @@ func main() {
 	r.HandleFunc("/create-lobby", handleCreateLobby).Methods("POST")
 	r.HandleFunc("/join-lobby", handleJoinLobby).Methods("POST")
 	r.HandleFunc("/choose-word", handleChooseWord).Methods("POST")
+	r.HandleFunc("/guess-letter", handleGuessLetter).Methods("POST")
 	r.HandleFunc("/lobby/{id}", handleGetLobby).Methods("GET")
 
 	// Start server
@@ -135,6 +140,55 @@ func handleChooseWord(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprintf(w, "Game created successfully.")
+}
+
+func handleGuessLetter(w http.ResponseWriter, r *http.Request) {
+	var req LetterRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+
+	letter := req.Letter
+	if len(letter) != 1 {
+		http.Error(w, "Enter a single letter.", http.StatusBadRequest)
+		return
+	}
+
+	player_cookie, err := r.Cookie("player")
+	if err != nil {
+		http.Error(w, "Player not identified", http.StatusUnauthorized)
+		return
+	}
+	playerName := player_cookie.Value
+
+	lobby_cookie, err := r.Cookie("lobby")
+	if err != nil {
+		http.Error(w, "Lobby not identified", http.StatusUnauthorized)
+		return
+	}
+	lobby := lobby_cookie.Value
+
+	lobby_pointer, exists := session.GetLobby(lobby)
+	if exists != nil {
+		http.Error(w, "Lobby not identified", http.StatusUnauthorized)
+	}
+
+	if playerName == lobby_pointer.Player1 {
+		if !lobby_pointer.Game2.Guess(rune(letter[0])) {
+			http.Error(w, "Letter already guessed", http.StatusBadRequest)
+		} else {
+			lobby_pointer.Game2.Guess(rune(letter[0]))
+			fmt.Fprintf(w, "Letter, %s, guessed successful \n", letter)
+		}
+	} else if playerName == lobby_pointer.Player2 {
+		if !lobby_pointer.Game1.Guess(rune(letter[0])) {
+			http.Error(w, "Letter already guessed", http.StatusBadRequest)
+		} else {
+			lobby_pointer.Game1.Guess(rune(letter[0]))
+			fmt.Fprintf(w, "Letter, %s, guessed successful \n", letter)
+		}
+	}
 }
 
 func handleGetLobby(w http.ResponseWriter, r *http.Request) {
