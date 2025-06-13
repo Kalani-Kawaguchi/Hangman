@@ -75,22 +75,18 @@ func ValidateWord(word string) bool {
 	return true
 }
 
-func NewGame(word string, maxAttempts int) *Game {
-	if ValidateWord(word) {
-		revealed := make([]rune, len(word))
-		for i := range revealed {
-			revealed[i] = '_'
-		}
-		return &Game{
-			Word:           strings.ToLower(word),
-			Revealed:       revealed,
-			AttemptsLeft:   maxAttempts,
-			Letters:        letters,
-			GuessedLetters: make([]rune, 0, 26),
-			Status:         InProgress,
-		}
-	} else {
-		return nil
+func NewGame(word string) Game {
+	revealed := make([]rune, len(word))
+	for i := range revealed {
+		revealed[i] = '_'
+	}
+	return Game{
+		Word:           strings.ToLower(word),
+		Revealed:       revealed,
+		AttemptsLeft:   6,
+		Letters:        letters,
+		GuessedLetters: make([]rune, 0, 26),
+		Status:         InProgress,
 	}
 }
 
