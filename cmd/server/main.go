@@ -137,12 +137,6 @@ func handleChooseWord(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Game created successfully.")
 }
 
-// TODO:
-// Once both games are created lobby set to ready
-// once lobby is ready both games will start
-// Change lobby struct to have game1 and game2
-// Look into web sockets to figure out how to connect both players and show the games concurrently
-
 func handleGetLobby(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
