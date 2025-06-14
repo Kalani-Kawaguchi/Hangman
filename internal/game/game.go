@@ -120,7 +120,7 @@ func (g *Game) Guess(letter rune, w http.ResponseWriter) bool {
 		g.DisplayState(w)
 	}
 
-	g.checkGameStatus()
+	g.checkGameStatus(w)
 	return true
 }
 
@@ -132,14 +132,16 @@ func (g *Game) updateMaskedWord(letter rune) {
 	}
 }
 
-func (g *Game) checkGameStatus() {
+func (g *Game) checkGameStatus(w http.ResponseWriter) {
 	if g.AttemptsLeft <= 0 {
 		g.Status = Lost
+		fmt.Fprintf(w, "\nGame Over! The word was: %s", g.Word)
 		return
 	}
 
 	if !strings.ContainsRune(string(g.Revealed), '_') {
 		g.Status = Won
+		fmt.Fprintf(w, "\nYou Win! The word was: %s", g.Word)
 	}
 }
 
