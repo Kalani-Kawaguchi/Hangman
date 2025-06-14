@@ -243,7 +243,7 @@ func handleLeaveLobby(w http.ResponseWriter, r *http.Request) {
 		// kick out player2 if they exist
 		if lobby.Player2 != "" {
 			// We'll need to use websocket to notify player2 that they've been kicked out and lobby deleted
-			return
+			fmt.Fprintln(w, "Player 2 kicked")
 		}
 
 		// Clear player1s lobby cookies
