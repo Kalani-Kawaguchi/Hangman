@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"net/http"
 	"sort"
 	"strings"
 	"unicode"
@@ -53,21 +54,25 @@ const (
 	Lost
 )
 
-func ValidateLetter(r rune) bool {
+func ValidateLetter(r rune, w http.ResponseWriter) bool {
 	if !unicode.IsLetter(r) || (r > unicode.MaxASCII || (r < 'A' || (r > 'Z' && r < 'a') || r > 'z')) {
+		http.Error(w, "Must contain only English letters.", http.StatusBadRequest)
 		return false
 	}
 
 	return true
 }
 
-func ValidateWord(word string) bool {
+func ValidateWord(word string, w http.ResponseWriter) bool {
 	if len(word) < 5 {
+		http.Error(w, "Word must be at least 5 letters.", http.StatusBadRequest)
 		return false
 	}
 
 	for _, r := range word {
-		ValidateLetter(r)
+		if !ValidateLetter(r, w) {
+			return false
+		}
 	}
 
 	return true
@@ -89,14 +94,15 @@ func NewGame(word string) Game {
 	}
 }
 
-func (g *Game) Guess(letter rune) bool {
-	if !ValidateLetter(letter) {
+func (g *Game) Guess(letter rune, w http.ResponseWriter) bool {
+	if !ValidateLetter(letter, w) {
 		return false
 	}
 
 	letter = unicode.ToLower(letter)
 
 	if g.Letters[letter] {
+		http.Error(w, "Letter already guessed", http.StatusBadRequest)
 		return false
 	}
 
@@ -108,8 +114,10 @@ func (g *Game) Guess(letter rune) bool {
 
 	if strings.ContainsRune(g.Word, letter) {
 		g.updateMaskedWord(letter)
+		g.DisplayState(w)
 	} else {
 		g.AttemptsLeft--
+		g.DisplayState(w)
 	}
 
 	g.checkGameStatus()
@@ -135,12 +143,11 @@ func (g *Game) checkGameStatus() {
 	}
 }
 
-func (g *Game) DisplayState() {
-	fmt.Println("\nWord:", string(g.Revealed))
-	fmt.Printf("Guesses Left: %d\n", g.AttemptsLeft)
-	fmt.Printf("Guessed letters: ")
+func (g *Game) DisplayState(w http.ResponseWriter) {
+	fmt.Fprintf(w, "Word: %s\n", string(g.Revealed))
+	fmt.Fprintf(w, "Guesses Left: %d\n", g.AttemptsLeft)
+	fmt.Fprintf(w, "Guessed letters: ")
 	for _, letter := range g.GuessedLetters {
-		fmt.Printf("%c ", letter)
+		fmt.Fprintf(w, "%c ", letter)
 	}
-	fmt.Println()
 }

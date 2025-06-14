@@ -106,8 +106,7 @@ func handleChooseWord(w http.ResponseWriter, r *http.Request) {
 
 	word := req.Word
 
-	if !game.ValidateWord(word) {
-		http.Error(w, "invalid word try again", http.StatusBadRequest)
+	if !game.ValidateWord(word, w) {
 		return
 	}
 
@@ -129,6 +128,7 @@ func handleChooseWord(w http.ResponseWriter, r *http.Request) {
 	lobby_pointer, exists := session.GetLobby(lobby)
 	if exists != nil {
 		http.Error(w, "Lobby not identified", http.StatusUnauthorized)
+		return
 	}
 
 	if playerName == lobby_pointer.Player1 {
@@ -175,19 +175,9 @@ func handleGuessLetter(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if playerName == lobby_pointer.Player1 {
-		if !lobby_pointer.Game2.Guess(rune(letter[0])) {
-			http.Error(w, "Letter already guessed", http.StatusBadRequest)
-		} else {
-			lobby_pointer.Game2.Guess(rune(letter[0]))
-			fmt.Fprintf(w, "Letter, %s, guessed successful \n", letter)
-		}
+		lobby_pointer.Game2.Guess(rune(letter[0]), w)
 	} else if playerName == lobby_pointer.Player2 {
-		if !lobby_pointer.Game1.Guess(rune(letter[0])) {
-			http.Error(w, "Letter already guessed", http.StatusBadRequest)
-		} else {
-			lobby_pointer.Game1.Guess(rune(letter[0]))
-			fmt.Fprintf(w, "Letter, %s, guessed successful \n", letter)
-		}
+		lobby_pointer.Game1.Guess(rune(letter[0]), w)
 	}
 }
 
