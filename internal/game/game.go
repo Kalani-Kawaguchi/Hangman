@@ -114,13 +114,20 @@ func (g *Game) Guess(letter rune, w http.ResponseWriter) bool {
 
 	if strings.ContainsRune(g.Word, letter) {
 		g.updateMaskedWord(letter)
+		g.checkGameStatus()
+		if g.WinOrLost(w) {
+			return true
+		}
 		g.DisplayState(w)
 	} else {
 		g.AttemptsLeft--
+		g.checkGameStatus()
+		if g.WinOrLost(w) {
+			return true
+		}
 		g.DisplayState(w)
 	}
 
-	g.checkGameStatus(w)
 	return true
 }
 
@@ -132,17 +139,29 @@ func (g *Game) updateMaskedWord(letter rune) {
 	}
 }
 
-func (g *Game) checkGameStatus(w http.ResponseWriter) {
+func (g *Game) checkGameStatus() {
 	if g.AttemptsLeft <= 0 {
 		g.Status = Lost
-		fmt.Fprintf(w, "\nGame Over! The word was: %s", g.Word)
 		return
 	}
 
 	if !strings.ContainsRune(string(g.Revealed), '_') {
 		g.Status = Won
-		fmt.Fprintf(w, "\nYou Win! The word was: %s", g.Word)
 	}
+}
+
+func (g *Game) WinOrLost(w http.ResponseWriter) bool {
+	if g.Status == Won {
+		fmt.Fprintf(w, "You Win! The word was: %s", g.Word)
+		return true
+	}
+
+	if g.Status == Lost {
+		fmt.Fprintf(w, "Game Over! The word was: %s", g.Word)
+		return true
+	}
+
+	return false
 }
 
 func (g *Game) DisplayState(w http.ResponseWriter) {

@@ -184,6 +184,17 @@ func handleGuessLetter(w http.ResponseWriter, r *http.Request) {
 	}
 
 	letter := req.Letter
+
+	if playerName == lobby_pointer.Player1 {
+		if lobby_pointer.Game2.WinOrLost(w) {
+			return
+		}
+	} else if playerName == lobby_pointer.Player2 {
+		if lobby_pointer.Game1.WinOrLost(w) {
+			return
+		}
+	}
+
 	if len(letter) != 1 {
 		http.Error(w, "Enter a single letter.", http.StatusBadRequest)
 		return
