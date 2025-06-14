@@ -80,6 +80,7 @@ func JoinLobby(lobbyID, player2 string) (*Lobby, error) {
 func GetLobby(lobbyID string) (*Lobby, error) {
 	lobbiesMu.Lock()
 	defer lobbiesMu.Unlock()
+
 	fmt.Println("Available lobbies:")
 	for id := range lobbies {
 		fmt.Println("-", id)
@@ -91,6 +92,22 @@ func GetLobby(lobbyID string) (*Lobby, error) {
 		return nil, errors.New(lobbyID)
 	}
 	return lobby, nil
+}
+
+type LobbySummary struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+func GetLobbyList() []LobbySummary {
+	lobbiesMu.Lock()
+	defer lobbiesMu.Unlock()
+
+	var availableLobbies []LobbySummary
+	for id, lobby := range lobbies {
+		availableLobbies = append(availableLobbies, LobbySummary{ID: id, Name: lobby.Name})
+	}
+	return availableLobbies
 }
 
 // Helper to generate a random lobby ID
