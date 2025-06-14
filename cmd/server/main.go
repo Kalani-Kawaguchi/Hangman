@@ -31,6 +31,7 @@ func main() {
 	r.HandleFunc("/join-lobby", handleJoinLobby).Methods("POST")
 	r.HandleFunc("/choose-word", handleChooseWord).Methods("POST")
 	r.HandleFunc("/lobby/{id}", handleGetLobby).Methods("GET")
+	r.HandleFunc("/list-lobbies", handleListLobbies).Methods("GET")
 
 	// Start server
 	log.Println("Hangman running on :8080")
@@ -148,4 +149,9 @@ func handleGetLobby(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(lobby)
+}
+
+func handleListLobbies(w http.ResponseWriter, r *http.Request) {
+	lobbies := session.GetLobbyList()
+	json.NewEncoder(w).Encode(lobbies)
 }
