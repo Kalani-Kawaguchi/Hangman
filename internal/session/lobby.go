@@ -20,14 +20,16 @@ const (
 )
 
 type Lobby struct {
-	ID      string     `json:"id"`
-	Name    string     `json:"name"`
-	Player1 string     `json:"player1"`
-	Player2 string     `json:"player2,omitempty"`
-	State   LobbyState `json:"state"`
-	Created time.Time  `json:"created"`
-	Game1   game.Game
-	Game2   game.Game
+	ID         string     `json:"id"`
+	Name       string     `json:"name"`
+	Player1    string     `json:"player1"`
+	Player2    string     `json:"player2,omitempty"`
+	State      LobbyState `json:"state"`
+	Created    time.Time  `json:"created"`
+	Game1      game.Game
+	Game2      game.Game
+	Game1Ready bool
+	Game2Ready bool
 }
 
 // Might move this somewhere else
@@ -36,8 +38,9 @@ type WordRequest struct {
 }
 
 type LobbySummary struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID    string     `json:"id"`
+	Name  string     `json:"name"`
+	State LobbyState `json:"state"`
 }
 
 // Thread-safe map to store active lobbies
@@ -53,11 +56,13 @@ func CreateLobby(name string, player1 string) *Lobby {
 
 	id := generateLobbyID()
 	lobby := &Lobby{
-		ID:      id,
-		Name:    name,
-		Player1: player1,
-		State:   StateWaiting,
-		Created: time.Now(),
+		ID:         id,
+		Name:       name,
+		Player1:    player1,
+		State:      StateWaiting,
+		Created:    time.Now(),
+		Game1Ready: false,
+		Game2Ready: false,
 	}
 
 	lobbies[id] = lobby
@@ -78,7 +83,6 @@ func JoinLobby(lobbyID, player2 string) (*Lobby, error) {
 	}
 
 	lobby.Player2 = player2
-	lobby.State = StateReady
 	return lobby, nil
 }
 
@@ -101,7 +105,7 @@ func GetLobbyList() []LobbySummary {
 
 	var availableLobbies []LobbySummary
 	for id, lobby := range lobbies {
-		availableLobbies = append(availableLobbies, LobbySummary{ID: id, Name: lobby.Name})
+		availableLobbies = append(availableLobbies, LobbySummary{ID: id, Name: lobby.Name, State: lobby.State})
 	}
 	return availableLobbies
 }

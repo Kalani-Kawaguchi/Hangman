@@ -135,24 +135,25 @@ func handleChooseWord(w http.ResponseWriter, r *http.Request) {
 	if playerName == lobby_pointer.Player1 {
 		lobby_pointer.Game1 = game.NewGame(word)
 		fmt.Fprintf(w, "Word: '%s' chosen for %s. \n", word, lobby_pointer.Player2)
+		lobby_pointer.Game1Ready = true
+
 	} else if playerName == lobby_pointer.Player2 {
 		lobby_pointer.Game2 = game.NewGame(word)
 		fmt.Fprintf(w, "Word: '%s' chosen for %s. \n", word, lobby_pointer.Player1)
+		lobby_pointer.Game2Ready = true
 	}
 
 	fmt.Fprintf(w, "Game created successfully.")
+
+	if lobby_pointer.Game1Ready && lobby_pointer.Game2Ready {
+		lobby_pointer.State = session.StateReady
+	}
 }
 
 func handleGuessLetter(w http.ResponseWriter, r *http.Request) {
 	var req LetterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid request", http.StatusBadRequest)
-		return
-	}
-
-	letter := req.Letter
-	if len(letter) != 1 {
-		http.Error(w, "Enter a single letter.", http.StatusBadRequest)
 		return
 	}
 
@@ -173,6 +174,18 @@ func handleGuessLetter(w http.ResponseWriter, r *http.Request) {
 	lobby_pointer, exists := session.GetLobby(lobby)
 	if exists != nil {
 		http.Error(w, "Lobby not identified", http.StatusUnauthorized)
+		return
+	}
+
+	if lobby_pointer.State == session.StateWaiting {
+		http.Error(w, "Lobby not ready", http.StatusUnauthorized)
+		return
+	}
+
+	letter := req.Letter
+	if len(letter) != 1 {
+		http.Error(w, "Enter a single letter.", http.StatusBadRequest)
+		return
 	}
 
 	if playerName == lobby_pointer.Player1 {
