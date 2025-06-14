@@ -1,4 +1,7 @@
 TODO:
+We should add some check to validate the player name input. To make sure they don't put the empty string ""
+or some invalid characters. 
+
 Check for win/loss conditions per game.
 When both games are finished, set lobby state to Ended.
 

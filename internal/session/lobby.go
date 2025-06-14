@@ -38,9 +38,11 @@ type WordRequest struct {
 }
 
 type LobbySummary struct {
-	ID    string     `json:"id"`
-	Name  string     `json:"name"`
-	State LobbyState `json:"state"`
+	ID      string     `json:"id"`
+	Name    string     `json:"name"`
+	State   LobbyState `json:"state"`
+	Player1 string     `json:"player1"`
+	Player2 string     `json:"player2"`
 }
 
 // Thread-safe map to store active lobbies
@@ -54,7 +56,7 @@ func CreateLobby(name string, player1 string) *Lobby {
 	lobbiesMu.Lock()
 	defer lobbiesMu.Unlock()
 
-	id := generateLobbyID()
+	id := GenerateLobbyID()
 	lobby := &Lobby{
 		ID:         id,
 		Name:       name,
@@ -105,13 +107,13 @@ func GetLobbyList() []LobbySummary {
 
 	var availableLobbies []LobbySummary
 	for id, lobby := range lobbies {
-		availableLobbies = append(availableLobbies, LobbySummary{ID: id, Name: lobby.Name, State: lobby.State})
+		availableLobbies = append(availableLobbies, LobbySummary{ID: id, Name: lobby.Name, State: lobby.State, Player1: lobby.Player1, Player2: lobby.Player2})
 	}
 	return availableLobbies
 }
 
 // Helper to generate a random lobby ID
-func generateLobbyID() string {
+func GenerateLobbyID() string {
 	const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	const length = 6
 	rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -120,4 +122,10 @@ func generateLobbyID() string {
 		id[i] = letters[rand.Intn(len(letters))]
 	}
 	return string(id)
+}
+
+func DeleteLobby(lobby_id string) {
+	lobbiesMu.Lock()
+	defer lobbiesMu.Unlock()
+	delete(lobbies, lobby_id)
 }
