@@ -64,8 +64,8 @@ func ValidateLetter(r rune, w http.ResponseWriter) bool {
 }
 
 func ValidateWord(word string, w http.ResponseWriter) bool {
-	if len(word) < 5 {
-		http.Error(w, "Word must be at least 5 letters.", http.StatusBadRequest)
+	if len(word) < 1 {
+		http.Error(w, "Word must be at least 1 letter.", http.StatusBadRequest)
 		return false
 	}
 
