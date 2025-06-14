@@ -34,6 +34,11 @@ type WordRequest struct {
 	Word string `json:"word"`
 }
 
+type LobbySummary struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 // Thread-safe map to store active lobbies
 var (
 	lobbies   = make(map[string]*Lobby)
@@ -92,11 +97,6 @@ func GetLobby(lobbyID string) (*Lobby, error) {
 		return nil, errors.New(lobbyID)
 	}
 	return lobby, nil
-}
-
-type LobbySummary struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
 }
 
 func GetLobbyList() []LobbySummary {
