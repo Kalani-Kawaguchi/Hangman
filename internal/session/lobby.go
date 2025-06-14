@@ -3,10 +3,11 @@ package session
 import (
 	"errors"
 	"fmt"
-	"github.com/Kalani-Kawaguchi/Hangman/internal/game"
 	"math/rand"
 	"sync"
 	"time"
+
+	"github.com/Kalani-Kawaguchi/Hangman/internal/game"
 )
 
 type LobbyState string
@@ -85,11 +86,6 @@ func JoinLobby(lobbyID, player2 string) (*Lobby, error) {
 func GetLobby(lobbyID string) (*Lobby, error) {
 	lobbiesMu.Lock()
 	defer lobbiesMu.Unlock()
-
-	fmt.Println("Available lobbies:")
-	for id := range lobbies {
-		fmt.Println("-", id)
-	}
 
 	lobby, ok := lobbies[lobbyID]
 	if !ok {
