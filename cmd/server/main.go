@@ -34,6 +34,9 @@ var Hub = &ws.Hub{
 func main() {
 	r := mux.NewRouter()
 
+	fs := http.FileServer(http.Dir("./static"))
+	r.PathPrefix("/").Handler(fs)
+
 	// Routes
 	r.HandleFunc("/", handleRoot)
 	r.HandleFunc("/create-lobby", handleCreateLobby).Methods("POST")
@@ -70,7 +73,7 @@ func getLobbyFromCookies(r *http.Request) (*session.Lobby, string, error) {
 }
 
 func handleRoot(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hangman Multiplayer Game")
+	http.ServeFile(w, r, "index.html")
 }
 
 // Handlers
