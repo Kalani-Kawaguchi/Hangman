@@ -21,9 +21,15 @@
             ws.send(JSON.stringify(message))
         }
 
+        ws.onmessage = (event) => {
+            const msg = JSON.parse(event.data);
+            console.log("Received:", msg);
+        }
+
         ws.onerror = (error) => {
             console.log(error)
         }
+
     </script>
     <a href="index.html">Go Back</a>
 </body>

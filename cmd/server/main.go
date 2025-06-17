@@ -40,6 +40,7 @@ func main() {
 	r.HandleFunc("/list-lobbies", handleListLobbies).Methods("GET")
 	r.HandleFunc("/leave-lobby", handleLeaveLobby).Methods("Post")
 	r.HandleFunc("/ws", ws.HandleWebSocket)
+	r.HandleFunc("/broadcast-test", ws.HandleBroadcastTest).Methods("GET")
 
 	// Start server
 	log.Println("Hangman running on :8080")

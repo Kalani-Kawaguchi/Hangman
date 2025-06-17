@@ -60,7 +60,7 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		log.Printf("Received from %s: %+v\n", lobbyID, msg)
+		log.Printf("Received from %s: %v\n", lobbyID, msg)
 
 		// Handle specific message types later
 	}
@@ -76,5 +76,22 @@ func BroadcastToLobby(lobbyID string, msg WSMessage) {
 			conn.Close()
 			delete(wsHub.clients[lobbyID], conn)
 		}
+		log.Printf("Broadcast msg: %s to lobby: %s", msg, lobbyID)
 	}
+}
+
+func HandleBroadcastTest(w http.ResponseWriter, r *http.Request) {
+	lobbyID := r.URL.Query().Get("lobby")
+	if lobbyID == "" {
+		http.Error(w, "Missing Lobby ID", http.StatusBadRequest)
+		return
+	}
+
+	msg := WSMessage{
+		Type:    "broadcast",
+		Payload: "Hello from server!",
+	}
+
+	BroadcastToLobby(lobbyID, msg)
+	w.Write([]byte("Broadcast sent"))
 }
