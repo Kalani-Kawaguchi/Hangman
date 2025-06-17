@@ -62,7 +62,8 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 		log.Printf("Received from %s: %v\n", lobbyID, msg)
 
-		// Handle specific message types later
+		data := map[string]string{"type": "update", "word": "hangman"}
+		conn.WriteJSON(data)
 	}
 }
 

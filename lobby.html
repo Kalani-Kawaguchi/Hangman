@@ -7,9 +7,10 @@
 </head>
 <body>
     <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const lobbyId = urlParams.get('lobby');
         const playerName = localStorage.getItem("playerName")
-        const LOBBY_ID = 1234
-        let ws = new WebSocket(`ws://localhost:8080/ws?lobby=${LOBBY_ID}`)
+        let ws = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}`)
         console.log("Attempting Connection")
 
         ws.onopen = () => {
