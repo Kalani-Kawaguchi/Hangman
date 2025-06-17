@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        const playerName = localStorage.getItem("playerName")
+        const LOBBY_ID = 1234
+        let ws = new WebSocket(`ws://localhost:8080/ws?lobby=${LOBBY_ID}`)
+        console.log("Attempting Connection")
+
+        ws.onopen = () => {
+            console.log("hello");
+            const message = {
+                type: "update",
+                payload: playerName
+            };
+            ws.send(JSON.stringify(message))
+        }
+
+        ws.onerror = (error) => {
+            console.log(error)
+        }
+    </script>
+    <a href="index.html">Go Back</a>
+</body>
+</html>

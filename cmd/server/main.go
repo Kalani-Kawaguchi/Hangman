@@ -8,6 +8,7 @@ import (
 
 	"github.com/Kalani-Kawaguchi/Hangman/internal/game"
 	"github.com/Kalani-Kawaguchi/Hangman/internal/session"
+	"github.com/Kalani-Kawaguchi/Hangman/internal/ws"
 	"github.com/gorilla/mux"
 )
 
@@ -38,6 +39,7 @@ func main() {
 	r.HandleFunc("/lobby/{id}", handleGetLobby).Methods("GET")
 	r.HandleFunc("/list-lobbies", handleListLobbies).Methods("GET")
 	r.HandleFunc("/leave-lobby", handleLeaveLobby).Methods("Post")
+	r.HandleFunc("/ws", ws.HandleWebSocket)
 
 	// Start server
 	log.Println("Hangman running on :8080")

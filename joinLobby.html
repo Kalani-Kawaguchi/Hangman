@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        function save_name(){
+            localStorage.setItem("playerName", document.getElementById('name').value)
+        }
+    </script>
+    <ul>
+        <li><a href="lobby.html" onclick="save_name()">Lobby: 1234</a></li>
+    </ul>
+    <input id="name"><br>
+    <a href="index.html">Go Back</a>
+</body>
+</html>
