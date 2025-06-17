@@ -13,12 +13,12 @@ type WSMessage struct {
 	Payload interface{} `json:"payload"`
 }
 
-type Hub struct {
+type OldHub struct {
 	clients map[string]map[*websocket.Conn]bool
 	lock    sync.Mutex
 }
 
-var wsHub = &Hub{
+var wsHub = &OldHub{
 	clients: make(map[string]map[*websocket.Conn]bool),
 }
 

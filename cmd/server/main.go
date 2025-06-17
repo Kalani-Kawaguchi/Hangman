@@ -27,6 +27,10 @@ type LetterRequest struct {
 	Letter string `json:"guess"`
 }
 
+var Hub = &ws.Hub{
+	Lobbies: make(map[string]*session.Lobby),
+}
+
 func main() {
 	r := mux.NewRouter()
 

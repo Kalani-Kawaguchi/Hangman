@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Kalani-Kawaguchi/Hangman/internal/game"
+	"github.com/gorilla/websocket"
 )
 
 type LobbyState string
@@ -30,6 +31,8 @@ type Lobby struct {
 	Game2      game.Game
 	Game1Ready bool
 	Game2Ready bool
+	Clients    map[*websocket.Conn]bool // active WebSocket clients
+	ConnLock   sync.Mutex               // protects Clients map
 }
 
 // Might move this somewhere else
