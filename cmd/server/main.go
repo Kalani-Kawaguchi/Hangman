@@ -27,11 +27,6 @@ type LetterRequest struct {
 	Letter string `json:"guess"`
 }
 
-// // Hub of Lobbies
-// var h = &ws.Hub{
-// 	Lobbies: make(map[string]*session.Lobby),
-// }
-
 func main() {
 	r := mux.NewRouter()
 
@@ -43,7 +38,7 @@ func main() {
 	r.HandleFunc("/guess-letter", handleGuessLetter).Methods("POST")
 	r.HandleFunc("/lobby/{id}", handleGetLobby).Methods("GET")
 	r.HandleFunc("/list-lobbies", handleListLobbies).Methods("GET")
-	r.HandleFunc("/leave-lobby", handleLeaveLobby).Methods("Post")
+	r.HandleFunc("/leave-lobby", handleLeaveLobby).Methods("POST")
 	r.HandleFunc("/ws", ws.HandleWebSocket)
 	r.HandleFunc("/broadcast-test", ws.HandleBroadcastTest).Methods("GET")
 
@@ -74,7 +69,7 @@ func getLobbyFromCookies(r *http.Request) (*session.Lobby, string, error) {
 }
 
 func handleRoot(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "index.html")
+	http.ServeFile(w, r, "./static/index.html")
 }
 
 // Handlers
@@ -93,13 +88,6 @@ func handleCreateLobby(w http.ResponseWriter, r *http.Request) {
 	// lobby is a pointer to the newly created Lobby
 	lobby := session.CreateLobby(req.LobbyName, req.HostName)
 
-	// add lobby to global hub
-	// h.Lock.Lock()
-	// if _, exists := h.Lobbies[lobby.ID]; !exists {
-	// 	h.Lobbies[lobby.ID] = lobby
-	// }
-	// h.Lock.Unlock()
-
 	http.SetCookie(w, &http.Cookie{
 		Name:  "lobby",
 		Value: lobby.ID,
@@ -108,27 +96,11 @@ func handleCreateLobby(w http.ResponseWriter, r *http.Request) {
 	// assign player to lobby
 	session.JoinLobby(lobby.ID, req.HostName)
 
-	// // create websocket connection and add it to the Clients under this lobby
-	// conn, err := ws.Upgrader.Upgrade(w, r, nil)
-	// if err != nil {
-	// 	log.Println("Upgrade error:", err)
-	// 	return
-	// }
-
-	// // Add the connection to the lobby's clients
-	// lobby.ConnLock.Lock()
-	// if lobby.Clients[conn] != true { // might not need the if check, just set the conn
-	// 	lobby.Clients[conn] = true
-	// }
-	// lobby.ConnLock.Unlock()
-	// log.Println("Added connection to lobby")
-
-	json.NewEncoder(w).Encode(lobby)
+	log.Printf("Created A Lobby: %s", lobby.ID)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
 		"id": lobby.ID,
 	})
-	fmt.Fprintf(w, "Created A Lobby")
 }
 
 func handleJoinLobby(w http.ResponseWriter, r *http.Request) {

@@ -9,6 +9,7 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const lobbyId = urlParams.get('lobby');
+        console.log(lobbyId)
         const playerName = localStorage.getItem("playerName")
         let ws = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}`)
         console.log("Attempting Connection")
