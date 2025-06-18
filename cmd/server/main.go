@@ -27,10 +27,6 @@ type LetterRequest struct {
 	Letter string `json:"guess"`
 }
 
-var Hub = &ws.Hub{
-	Lobbies: make(map[string]*session.Lobby),
-}
-
 func main() {
 	r := mux.NewRouter()
 
@@ -89,12 +85,16 @@ func handleCreateLobby(w http.ResponseWriter, r *http.Request) {
 		Value: req.HostName,
 	})
 
+	// lobby is a pointer to the newly created Lobby
 	lobby := session.CreateLobby(req.LobbyName, req.HostName)
 
 	http.SetCookie(w, &http.Cookie{
 		Name:  "lobby",
 		Value: lobby.ID,
 	})
+
+	// assign player to lobby
+	session.JoinLobby(lobby.ID, req.HostName)
 
 	log.Printf("Created A Lobby: %s", lobby.ID)
 	w.Header().Set("Content-Type", "application/json")

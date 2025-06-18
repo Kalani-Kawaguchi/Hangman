@@ -68,6 +68,7 @@ func CreateLobby(name string, player1 string) *Lobby {
 		Created:    time.Now(),
 		Game1Ready: false,
 		Game2Ready: false,
+		Clients:    make(map[*websocket.Conn]bool),
 	}
 
 	lobbies[id] = lobby
@@ -75,19 +76,24 @@ func CreateLobby(name string, player1 string) *Lobby {
 	return lobby
 }
 
-// JoinLobby assigns a guesser to an existing lobby
-func JoinLobby(lobbyID, player2 string) (*Lobby, error) {
+// JoinLobby assigns a player to an existing lobby
+func JoinLobby(lobbyID, player string) (*Lobby, error) {
 	lobbiesMu.Lock()
 	defer lobbiesMu.Unlock()
 	lobby, exists := lobbies[lobbyID]
 	if !exists {
 		return nil, errors.New("lobby not found")
 	}
-	if lobby.Player2 != "" {
+
+	// Check which Lobby player to assign to
+	if lobby.Player1 == "" {
+		lobby.Player1 = player
+	} else if lobby.Player2 == "" {
+		lobby.Player2 = player
+	} else {
 		return nil, errors.New("lobby already full")
 	}
 
-	lobby.Player2 = player2
 	return lobby, nil
 }
 
