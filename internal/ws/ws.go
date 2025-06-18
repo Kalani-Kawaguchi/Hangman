@@ -1,12 +1,19 @@
 package ws
 
 import (
+	"errors"
 	"log"
 	"net/http"
+	"sync"
 
 	"github.com/Kalani-Kawaguchi/Hangman/internal/session"
 	"github.com/gorilla/websocket"
 )
+
+type Hub struct {
+	Lobbies map[string]*session.Lobby
+	Lock    sync.Mutex
+}
 
 type WSMessage struct {
 	Type    string      `json:"type"`
@@ -22,44 +29,12 @@ var Upgrader = websocket.Upgrader{
 }
 
 func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
-	lobbyID := r.URL.Query().Get("lobby")
-	if lobbyID == "" {
-		http.Error(w, "Missing lobby ID", http.StatusBadRequest)
+	conn, lobbyID, err := setupWebSocket(w, r)
+	if err != nil {
+		log.Println("Setup error:", err)
 		return
 	}
-
-	conn, err := Upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Println("Upgrade error:", err)
-		return
-	}
-
-	wsHub.Lock.Lock()
-	lobby, err := session.GetLobby(lobbyID)
-	if err != nil {
-		log.Println("Lobby not found")
-	}
-
-	if _, exists := wsHub.Lobbies[lobbyID]; !exists {
-
-		wsHub.Lobbies[lobbyID] = lobby
-	}
-
-	lobby.ConnLock.Lock()
-	if !lobby.Clients[conn] {
-		lobby.Clients[conn] = true
-	}
-	lobby.ConnLock.Unlock()
-	log.Println("Added connection to lobby")
-
-	wsHub.Lock.Unlock()
-
-	defer func() {
-		wsHub.Lock.Lock()
-		delete(wsHub.Lobbies[lobbyID].Clients, conn)
-		wsHub.Lock.Unlock()
-		conn.Close()
-	}()
+	defer cleanupConnection(lobbyID, conn)
 
 	for {
 		var msg WSMessage
@@ -67,12 +42,71 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 			log.Println("WebSocket read error:", err)
 			break
 		}
+		handleMessage(conn, lobbyID, msg)
 
-		log.Printf("Received from %s: %v\n", lobbyID, msg)
-
-		data := map[string]string{"type": "update", "word": "hangman"}
-		conn.WriteJSON(data)
 	}
+}
+
+func setupWebSocket(w http.ResponseWriter, r *http.Request) (*websocket.Conn, string, error) {
+	lobbyID := r.URL.Query().Get("lobby")
+	if lobbyID == "" {
+		http.Error(w, "Missing lobby ID", http.StatusBadRequest)
+		return nil, "", errors.New("missing lobby ID")
+	}
+
+	conn, err := Upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		return nil, "", err
+	}
+
+	wsHub.Lock.Lock()
+	defer wsHub.Lock.Unlock()
+
+	lobby, err := session.GetLobby(lobbyID)
+	if err != nil {
+		return nil, "", err
+	}
+	if _, exists := wsHub.Lobbies[lobbyID]; !exists {
+		wsHub.Lobbies[lobbyID] = lobby
+	}
+
+	lobby.ConnLock.Lock()
+	lobby.Clients[conn] = true
+	lobby.ConnLock.Unlock()
+
+	log.Println("Added connection to lobby")
+	return conn, lobbyID, nil
+}
+
+func handleMessage(conn *websocket.Conn, lobbyID string, msg WSMessage) {
+	log.Printf("Received from %s: %v\n", lobbyID, msg)
+	data := map[string]string{"type": "update", "word": "hangman"}
+	conn.WriteJSON(data)
+	switch msg.Type {
+	case "update":
+		handleUpdate(conn, lobbyID, msg.Payload)
+	case "guess":
+		handleGuess(conn, lobbyID, msg.Payload)
+	// add the other message type cases...
+	default:
+		log.Println("Unknown message type:", msg.Type)
+	}
+}
+
+func handleUpdate(conn *websocket.Conn, lobbyID string, payload interface{}) {
+	return
+}
+
+func handleGuess(conn *websocket.Conn, lobbyID string, payload interface{}) {
+	return
+}
+
+func cleanupConnection(lobbyID string, conn *websocket.Conn) {
+	wsHub.Lock.Lock()
+	defer wsHub.Lock.Unlock()
+
+	delete(wsHub.Lobbies[lobbyID].Clients, conn)
+	conn.Close()
 }
 
 func BroadcastToLobby(lobbyID string, msg WSMessage) {
