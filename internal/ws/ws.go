@@ -22,7 +22,7 @@ var wsHub = &OldHub{
 	clients: make(map[string]map[*websocket.Conn]bool),
 }
 
-var upgrader = websocket.Upgrader{
+var Upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
@@ -33,7 +33,7 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	conn, err := upgrader.Upgrade(w, r, nil)
+	conn, err := Upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("Upgrade error:", err)
 		return

@@ -8,5 +8,5 @@ import (
 
 type Hub struct {
 	Lobbies map[string]*session.Lobby
-	lock    sync.Mutex
+	Lock    sync.Mutex
 }

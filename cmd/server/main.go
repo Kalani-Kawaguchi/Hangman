@@ -27,15 +27,13 @@ type LetterRequest struct {
 	Letter string `json:"guess"`
 }
 
-var Hub = &ws.Hub{
+// Hub of Lobbies
+var h = &ws.Hub{
 	Lobbies: make(map[string]*session.Lobby),
 }
 
 func main() {
 	r := mux.NewRouter()
-
-	fs := http.FileServer(http.Dir("./static"))
-	r.PathPrefix("/").Handler(fs)
 
 	// Routes
 	r.HandleFunc("/", handleRoot)
@@ -48,6 +46,9 @@ func main() {
 	r.HandleFunc("/leave-lobby", handleLeaveLobby).Methods("Post")
 	r.HandleFunc("/ws", ws.HandleWebSocket)
 	r.HandleFunc("/broadcast-test", ws.HandleBroadcastTest).Methods("GET")
+
+	fs := http.FileServer(http.Dir("./static"))
+	r.PathPrefix("/").Handler(fs)
 
 	// Start server
 	log.Println("Hangman running on :8080")
@@ -89,14 +90,44 @@ func handleCreateLobby(w http.ResponseWriter, r *http.Request) {
 		Value: req.HostName,
 	})
 
+	// lobby is a pointer to the newly created Lobby
 	lobby := session.CreateLobby(req.LobbyName, req.HostName)
+
+	// add lobby to global hub
+	h.Lock.Lock()
+	if _, exists := h.Lobbies[lobby.ID]; !exists {
+		h.Lobbies[lobby.ID] = lobby
+	}
+	h.Lock.Unlock()
 
 	http.SetCookie(w, &http.Cookie{
 		Name:  "lobby",
 		Value: lobby.ID,
 	})
 
+	// assign player to lobby
+	session.JoinLobby(lobby.ID, req.HostName)
+
+	// // create websocket connection and add it to the Clients under this lobby
+	conn, err := ws.Upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println("Upgrade error:", err)
+		return
+	}
+
+	// // Add the connection to the lobby's clients
+	// lobby.ConnLock.Lock()
+	// if lobby.Clients[conn] != true { // might not need the if check, just set the conn
+	// 	lobby.Clients[conn] = true
+	// }
+	// lobby.ConnLock.Unlock()
+	// log.Println("Added connection to lobby")
+
 	json.NewEncoder(w).Encode(lobby)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"id": lobby.ID,
+	})
 	fmt.Fprintf(w, "Created A Lobby")
 }
 
