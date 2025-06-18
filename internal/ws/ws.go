@@ -3,8 +3,8 @@ package ws
 import (
 	"log"
 	"net/http"
-	"sync"
 
+	"github.com/Kalani-Kawaguchi/Hangman/internal/session"
 	"github.com/gorilla/websocket"
 )
 
@@ -13,13 +13,8 @@ type WSMessage struct {
 	Payload interface{} `json:"payload"`
 }
 
-type OldHub struct {
-	clients map[string]map[*websocket.Conn]bool
-	lock    sync.Mutex
-}
-
-var wsHub = &OldHub{
-	clients: make(map[string]map[*websocket.Conn]bool),
+var wsHub = &Hub{
+	Lobbies: make(map[string]*session.Lobby),
 }
 
 var Upgrader = websocket.Upgrader{
@@ -39,17 +34,30 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wsHub.lock.Lock()
-	if wsHub.clients[lobbyID] == nil {
-		wsHub.clients[lobbyID] = make(map[*websocket.Conn]bool)
+	wsHub.Lock.Lock()
+	lobby, err := session.GetLobby(lobbyID)
+	if err != nil {
+		log.Println("Lobby not found")
 	}
-	wsHub.clients[lobbyID][conn] = true
-	wsHub.lock.Unlock()
+
+	if _, exists := wsHub.Lobbies[lobbyID]; !exists {
+
+		wsHub.Lobbies[lobbyID] = lobby
+	}
+
+	lobby.ConnLock.Lock()
+	if !lobby.Clients[conn] {
+		lobby.Clients[conn] = true
+	}
+	lobby.ConnLock.Unlock()
+	log.Println("Added connection to lobby")
+
+	wsHub.Lock.Unlock()
 
 	defer func() {
-		wsHub.lock.Lock()
-		delete(wsHub.clients[lobbyID], conn)
-		wsHub.lock.Unlock()
+		wsHub.Lock.Lock()
+		delete(wsHub.Lobbies[lobbyID].Clients, conn)
+		wsHub.Lock.Unlock()
 		conn.Close()
 	}()
 
@@ -68,16 +76,23 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 }
 
 func BroadcastToLobby(lobbyID string, msg WSMessage) {
-	wsHub.lock.Lock()
-	defer wsHub.lock.Unlock()
+	wsHub.Lock.Lock()
+	defer wsHub.Lock.Unlock()
 
-	for conn := range wsHub.clients[lobbyID] {
+	lobby, exists := wsHub.Lobbies[lobbyID]
+	if !exists {
+		log.Printf("Lobby %s not found for broadcast", lobbyID)
+		return
+	}
+	lobby.ConnLock.Lock()
+	defer lobby.ConnLock.Unlock()
+	for conn := range lobby.Clients {
 		if err := conn.WriteJSON(msg); err != nil {
 			log.Println("Broadcast error:", err)
 			conn.Close()
-			delete(wsHub.clients[lobbyID], conn)
+			delete(lobby.Clients, conn)
 		}
-		log.Printf("Broadcast msg: %s to lobby: %s", msg, lobbyID)
+		log.Printf("Broadcast msg: %v to lobby: %s", msg, lobbyID)
 	}
 }
 

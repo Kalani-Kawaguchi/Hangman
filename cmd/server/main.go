@@ -27,10 +27,10 @@ type LetterRequest struct {
 	Letter string `json:"guess"`
 }
 
-// Hub of Lobbies
-var h = &ws.Hub{
-	Lobbies: make(map[string]*session.Lobby),
-}
+// // Hub of Lobbies
+// var h = &ws.Hub{
+// 	Lobbies: make(map[string]*session.Lobby),
+// }
 
 func main() {
 	r := mux.NewRouter()
@@ -94,11 +94,11 @@ func handleCreateLobby(w http.ResponseWriter, r *http.Request) {
 	lobby := session.CreateLobby(req.LobbyName, req.HostName)
 
 	// add lobby to global hub
-	h.Lock.Lock()
-	if _, exists := h.Lobbies[lobby.ID]; !exists {
-		h.Lobbies[lobby.ID] = lobby
-	}
-	h.Lock.Unlock()
+	// h.Lock.Lock()
+	// if _, exists := h.Lobbies[lobby.ID]; !exists {
+	// 	h.Lobbies[lobby.ID] = lobby
+	// }
+	// h.Lock.Unlock()
 
 	http.SetCookie(w, &http.Cookie{
 		Name:  "lobby",
@@ -109,11 +109,11 @@ func handleCreateLobby(w http.ResponseWriter, r *http.Request) {
 	session.JoinLobby(lobby.ID, req.HostName)
 
 	// // create websocket connection and add it to the Clients under this lobby
-	conn, err := ws.Upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Println("Upgrade error:", err)
-		return
-	}
+	// conn, err := ws.Upgrader.Upgrade(w, r, nil)
+	// if err != nil {
+	// 	log.Println("Upgrade error:", err)
+	// 	return
+	// }
 
 	// // Add the connection to the lobby's clients
 	// lobby.ConnLock.Lock()
