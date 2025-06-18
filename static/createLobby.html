@@ -6,8 +6,6 @@
     <title>Document</title>
 </head>
 <body>
-    <script>
-    </script>
     <form>
         <label>Lobby Name: </label>
         <input id="lobbyName"><br>
@@ -17,5 +15,29 @@
     </form>
     <a href="/lobby.html">Lobby</a><br>
     <a href="/index.html">Go Back</a>
+    <script>
+        document.querySelector("form").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            const lobbyName = document.getElementById("lobbyName").value;
+            const playerName = document.getElementById("playerName").value;
+
+            const res = await fetch("/create-lobby", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    lobby_name: lobbyName,
+                    host_name: playerName
+                })
+            });
+
+            if (res.ok) {
+                localStorage.setItem("playerName", playerName);
+                const lobby = await res.json();
+                window.location.href = `/lobby.html?lobby=${lobby.id}`;
+            } else {
+                alert("Failed to create lobby");
+            }
+        });
+    </script>
 </body>
 </html>

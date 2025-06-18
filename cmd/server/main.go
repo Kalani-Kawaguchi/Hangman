@@ -34,9 +34,6 @@ var Hub = &ws.Hub{
 func main() {
 	r := mux.NewRouter()
 
-	fs := http.FileServer(http.Dir("./static"))
-	r.PathPrefix("/").Handler(fs)
-
 	// Routes
 	r.HandleFunc("/", handleRoot)
 	r.HandleFunc("/create-lobby", handleCreateLobby).Methods("POST")
@@ -45,9 +42,12 @@ func main() {
 	r.HandleFunc("/guess-letter", handleGuessLetter).Methods("POST")
 	r.HandleFunc("/lobby/{id}", handleGetLobby).Methods("GET")
 	r.HandleFunc("/list-lobbies", handleListLobbies).Methods("GET")
-	r.HandleFunc("/leave-lobby", handleLeaveLobby).Methods("Post")
+	r.HandleFunc("/leave-lobby", handleLeaveLobby).Methods("POST")
 	r.HandleFunc("/ws", ws.HandleWebSocket)
 	r.HandleFunc("/broadcast-test", ws.HandleBroadcastTest).Methods("GET")
+
+	fs := http.FileServer(http.Dir("./static"))
+	r.PathPrefix("/").Handler(fs)
 
 	// Start server
 	log.Println("Hangman running on :8080")
@@ -73,7 +73,7 @@ func getLobbyFromCookies(r *http.Request) (*session.Lobby, string, error) {
 }
 
 func handleRoot(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "index.html")
+	http.ServeFile(w, r, "./static/index.html")
 }
 
 // Handlers
@@ -96,8 +96,11 @@ func handleCreateLobby(w http.ResponseWriter, r *http.Request) {
 		Value: lobby.ID,
 	})
 
-	json.NewEncoder(w).Encode(lobby)
-	fmt.Fprintf(w, "Created A Lobby")
+	log.Printf("Created A Lobby: %s", lobby.ID)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"id": lobby.ID,
+	})
 }
 
 func handleJoinLobby(w http.ResponseWriter, r *http.Request) {
