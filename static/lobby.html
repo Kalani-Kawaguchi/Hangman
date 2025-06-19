@@ -51,7 +51,7 @@
         })
 
         document.addEventListener("keydown", function (e) {
-            cont key = e.key.toLowerCase();
+            const key = e.key.toLowerCase();
             if (/^[a-z]$/.test(key)) {
                 ws.send(JSON.stringify({type: "guess", payload: key}));
             }
