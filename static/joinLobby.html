@@ -10,8 +10,27 @@
     <input id="name" placeholder="Enter your name"><br>
     <a href="/index.html">Go Back</a>
     <script>
-        function save_name(){
-            localStorage.setItem("playerName", document.getElementById('name').value)
+        async function joinLobby(lobbyId) {
+            const playerName = document.getElementById('name').value.trim();
+            if (!playerName) {
+                alert("Please enter your name before joining a lobby!");
+                return;
+            }
+            localStorage.setItem("playerName", playerName);
+            const res = await fetch("/join-lobby", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    lobby_id: lobbyId,
+                    player_name: playerName
+                })
+            });
+            if (res.ok) {
+                window.location.href = `/lobby.html?lobby=${lobbyId}`;
+            } else {
+                const err = await res.text();
+                alert("Failed to join lobby: " + err);
+            }
         }
 
         async function fetchLobbies() {
@@ -22,8 +41,8 @@
             list.innerHTML = "";
             lobbies.forEach(lobby => {
                 const li = document.createElement("li");
-                li.innerHTML = `<a href="/lobby.html?lobby=${lobby.id}" onclick="save_name()">
-                    Lobby: ${lobby.name} - Host: ${lobby.player1} </a>`;
+                li.innerHTML = `<button type="button">Lobby: ${lobby.name}</button>`;
+                li.querySelector("button").onclick = () => joinLobby(lobby.id);
                 list.appendChild(li);
             });
         }
