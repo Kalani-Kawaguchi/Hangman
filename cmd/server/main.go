@@ -86,7 +86,7 @@ func handleCreateLobby(w http.ResponseWriter, r *http.Request) {
 	})
 
 	// lobby is a pointer to the newly created Lobby
-	lobby := session.CreateLobby(req.LobbyName, req.HostName)
+	lobby := session.CreateLobby(req.LobbyName)
 
 	http.SetCookie(w, &http.Cookie{
 		Name:  "lobby",

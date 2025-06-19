@@ -55,7 +55,7 @@ var (
 )
 
 // CreateLobby initializes a new lobby and returns it
-func CreateLobby(name string, player1 string) *Lobby {
+func CreateLobby(name string) *Lobby {
 	lobbiesMu.Lock()
 	defer lobbiesMu.Unlock()
 
