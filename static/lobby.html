@@ -12,6 +12,7 @@
         console.log(lobbyId)
         const playerName = localStorage.getItem("playerName")
         let ws = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}`)
+        let manuallyClosed = false;
         console.log("Attempting Connection")
 
         ws.onopen = () => {
@@ -32,7 +33,24 @@
             console.log(error)
         }
 
+        ws.onclose = async () => {
+            if (!manuallyClosed) {
+                await fetch("/leave-lobby", { method: "POST" });
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const goBack = document.getElementById("goBack");
+            goBack.addEventListener("click", async function(e) {
+                e.preventDefault();
+                manuallyClosed=true
+                ws.close();
+                await fetch("/leave-lobby", { method: "POST" });
+                window.location.href = "/index.html";
+            })
+        })
+
     </script>
-    <a href="/index.html">Go Back</a>
+    <a id="goBack">Go Back</a>
 </body>
 </html>
