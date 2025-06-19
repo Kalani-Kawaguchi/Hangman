@@ -6,15 +6,30 @@
     <title>Document</title>
 </head>
 <body>
+    <ul id="lobbyList"></ul>
+    <input id="name" placeholder="Enter your name"><br>
+    <a href="/index.html">Go Back</a>
     <script>
         function save_name(){
             localStorage.setItem("playerName", document.getElementById('name').value)
         }
+
+        async function fetchLobbies() {
+            const res = await fetch("/list-lobbies");
+            if (!res.ok) return;
+            const lobbies = await res.json();
+            const list = document.getElementById("lobbyList");
+            list.innerHTML = "";
+            lobbies.forEach(lobby => {
+                const li = document.createElement("li");
+                li.innerHTML = `<a href="/lobby.html?lobby=${lobby.id}" onclick="save_name()">
+                    Lobby: ${lobby.name} - Host: ${lobby.player1} </a>`;
+                list.appendChild(li);
+            });
+        }
+
+        fetchLobbies();
+        setInterval(fetchLobbies, 3000);
     </script>
-    <ul>
-        <li><a href="/lobby.html" onclick="save_name()">Lobby: 1234</a></li>
-    </ul>
-    <input id="name"><br>
-    <a href="/index.html">Go Back</a>
 </body>
 </html>
