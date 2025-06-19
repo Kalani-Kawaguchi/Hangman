@@ -11,3 +11,9 @@ Leaving a lobby.
 Look into players leaving the lobby (closing the tab) mid-game. Either can reconnect somehow or lobby is deleted ("Player left game").
 
 Look into web sockets to figure out how to connect both players and show the games concurrently
+
+Start a time after each guess, after 30 seconds, or however long with no guesses, we kick player
+
+also implement choose word and guess letter
+guess letters will need some websocket stuff
+

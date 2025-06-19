@@ -31,8 +31,8 @@ type Lobby struct {
 	Game2      game.Game
 	Game1Ready bool
 	Game2Ready bool
-	Clients    map[*websocket.Conn]bool // active WebSocket clients
-	ConnLock   sync.Mutex               // protects Clients map
+	Clients    map[*websocket.Conn]string // active WebSocket clients
+	ConnLock   sync.Mutex                 // protects Clients map
 }
 
 // Might move this somewhere else
@@ -67,7 +67,7 @@ func CreateLobby(name string) *Lobby {
 		Created:    time.Now(),
 		Game1Ready: false,
 		Game2Ready: false,
-		Clients:    make(map[*websocket.Conn]bool),
+		Clients:    make(map[*websocket.Conn]string),
 	}
 
 	lobbies[id] = lobby

@@ -2,6 +2,7 @@ package ws
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"sync"
@@ -70,8 +71,12 @@ func setupWebSocket(w http.ResponseWriter, r *http.Request) (*websocket.Conn, st
 		wsHub.Lobbies[lobbyID] = lobby
 	}
 
+	playerCookie, err := r.Cookie("player")
+	if err != nil {
+		return nil, "", fmt.Errorf("player not identified")
+	}
 	lobby.ConnLock.Lock()
-	lobby.Clients[conn] = true
+	lobby.Clients[conn] = playerCookie.Value
 	lobby.ConnLock.Unlock()
 
 	log.Println("Added connection to lobby")
@@ -105,8 +110,29 @@ func cleanupConnection(lobbyID string, conn *websocket.Conn) {
 	wsHub.Lock.Lock()
 	defer wsHub.Lock.Unlock()
 
-	delete(wsHub.Lobbies[lobbyID].Clients, conn)
+	lobby, ok := wsHub.Lobbies[lobbyID]
+	if !ok {
+		return
+	}
+
+	// Remove the WebSocket connection
+	lobby.ConnLock.Lock()
+	delete(lobby.Clients, conn)
+	lobby.ConnLock.Unlock()
 	conn.Close()
+
+	if lobby.Player1 == lobby.Clients[conn] {
+		log.Printf("Host left lobby %s", lobbyID)
+		// You could auto-delete the lobby or notify remaining player
+		delete(wsHub.Lobbies, lobbyID)
+		session.DeleteLobby(lobbyID) // delete lobby from session layer too
+	} else if lobby.Player2 == lobby.Clients[conn] {
+		log.Printf("Guest left lobby %s", lobbyID)
+	}
+	// If no more clients are connected, delete the lobby
+	if len(lobby.Clients) == 0 {
+		log.Printf("Lobby %s is empty. Deleting it.", lobbyID)
+	}
 }
 
 func BroadcastToLobby(lobbyID string, msg WSMessage) {

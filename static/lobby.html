@@ -17,10 +17,10 @@
 
         ws.onopen = () => {
             console.log("hello");
-            const message = {
-                type: "update",
-                payload: playerName
-            };
+            const message = JSON.parse(event.data);
+            if (msg.type === "update" && msg.payload.revealed) {
+                document.getElementById("WordDisplay").textContent = msg.payload
+            }
             ws.send(JSON.stringify(message))
         }
 
@@ -50,7 +50,14 @@
             })
         })
 
+        document.addEventListener("keydown", function (e) {
+            cont key = e.key.toLowerCase();
+            if (/^[a-z]$/.test(key)) {
+                ws.send(JSON.stringify({type: "guess", payload: key}));
+            }
+        });
     </script>
+    <h2 id="wordDisplay">Loading...</h2>
     <a id="goBack">Go Back</a>
 </body>
 </html>
