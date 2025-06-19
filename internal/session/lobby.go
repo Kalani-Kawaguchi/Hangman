@@ -63,7 +63,6 @@ func CreateLobby(name string, player1 string) *Lobby {
 	lobby := &Lobby{
 		ID:         id,
 		Name:       name,
-		Player1:    player1,
 		State:      StateWaiting,
 		Created:    time.Now(),
 		Game1Ready: false,
