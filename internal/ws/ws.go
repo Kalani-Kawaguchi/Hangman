@@ -199,10 +199,11 @@ func BroadcastToLobby(lobbyID string, t string) {
 			data := map[string]string{"type": "update", "revealed": ""}
 			if id == lobby.Player1ID {
 				data["revealed"] = string(lobby.Game2.Revealed)
+				conn.WriteJSON(data)
 			} else if id == lobby.Player2ID {
 				data["revealed"] = string(lobby.Game1.Revealed)
+				conn.WriteJSON(data)
 			}
-			conn.WriteJSON(data)
 		case "start_game":
 			start_message := map[string]string{"type": "start_game", "start": "x"}
 			conn.WriteJSON(start_message)
