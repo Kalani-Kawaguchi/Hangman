@@ -2,7 +2,7 @@ package game
 
 import (
 	"fmt"
-	"net/http"
+	"log"
 	"sort"
 	"strings"
 	"unicode"
@@ -54,23 +54,23 @@ const (
 	Lost
 )
 
-func ValidateLetter(r rune, w http.ResponseWriter) bool {
+func ValidateLetter(r rune) bool {
 	if !unicode.IsLetter(r) || (r > unicode.MaxASCII || (r < 'A' || (r > 'Z' && r < 'a') || r > 'z')) {
-		http.Error(w, "Must contain only English letters.", http.StatusBadRequest)
+		log.Print("Must contain only english letters")
 		return false
 	}
 
 	return true
 }
 
-func ValidateWord(word string, w http.ResponseWriter) bool {
+func ValidateWord(word string) bool {
 	if len(word) < 1 {
-		http.Error(w, "Word must be at least 1 letter.", http.StatusBadRequest)
+		log.Print("Word must be at least 1 letter")
 		return false
 	}
 
 	for _, r := range word {
-		if !ValidateLetter(r, w) {
+		if !ValidateLetter(r) {
 			return false
 		}
 	}
@@ -94,15 +94,15 @@ func NewGame(word string) Game {
 	}
 }
 
-func (g *Game) Guess(letter rune, w http.ResponseWriter) bool {
-	if !ValidateLetter(letter, w) {
+func (g *Game) Guess(letter rune) bool {
+	if !ValidateLetter(letter) {
 		return false
 	}
 
 	letter = unicode.ToLower(letter)
 
 	if g.Letters[letter] {
-		http.Error(w, "Letter already guessed", http.StatusBadRequest)
+		log.Print("Letter already guessed")
 		return false
 	}
 
@@ -115,17 +115,17 @@ func (g *Game) Guess(letter rune, w http.ResponseWriter) bool {
 	if strings.ContainsRune(g.Word, letter) {
 		g.updateMaskedWord(letter)
 		g.checkGameStatus()
-		if g.WinOrLost(w) {
+		if g.WinOrLost() {
 			return true
 		}
-		g.DisplayState(w)
+		g.DisplayState()
 	} else {
 		g.AttemptsLeft--
 		g.checkGameStatus()
-		if g.WinOrLost(w) {
+		if g.WinOrLost() {
 			return true
 		}
-		g.DisplayState(w)
+		g.DisplayState()
 	}
 
 	return true
@@ -150,25 +150,25 @@ func (g *Game) checkGameStatus() {
 	}
 }
 
-func (g *Game) WinOrLost(w http.ResponseWriter) bool {
+func (g *Game) WinOrLost() bool {
 	if g.Status == Won {
-		fmt.Fprintf(w, "You Win! The word was: %s", g.Word)
+		log.Print("You win")
 		return true
 	}
 
 	if g.Status == Lost {
-		fmt.Fprintf(w, "Game Over! The word was: %s", g.Word)
+		log.Print("You lost")
 		return true
 	}
 
 	return false
 }
 
-func (g *Game) DisplayState(w http.ResponseWriter) {
-	fmt.Fprintf(w, "Word: %s\n", string(g.Revealed))
-	fmt.Fprintf(w, "Guesses Left: %d\n", g.AttemptsLeft)
-	fmt.Fprintf(w, "Guessed letters: ")
+func (g *Game) DisplayState() {
+	fmt.Printf("Word: %s\n", string(g.Revealed))
+	fmt.Printf("Guesses Left: %d\n", g.AttemptsLeft)
+	fmt.Printf("Guessed letters: ")
 	for _, letter := range g.GuessedLetters {
-		fmt.Fprintf(w, "%c ", letter)
+		fmt.Printf("%c ", letter)
 	}
 }
