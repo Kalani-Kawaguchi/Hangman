@@ -112,9 +112,9 @@ func handleUpdate(conn *websocket.Conn, lobbyID string, playerID string, payload
 	return
 }
 
+
 func handleGuess(conn *websocket.Conn, lobbyID string, playerID string, payload interface{}) {
 	lobby := wsHub.Lobbies[lobbyID]
-	playerName := lobby.Clients[conn]
 	letter, ok := payload.(string)
 	if !ok {
 		log.Print("Letter could not be asserted to string")
@@ -126,18 +126,15 @@ func handleGuess(conn *websocket.Conn, lobbyID string, playerID string, payload 
 		return
 	}
 
-	data := map[string]string{"type": "update", "revealed": ""}
-	// USE BROADCAST
-	if playerName == lobby.Player1 {
+	if playerID == lobby.Player1ID {
 		lobby.Game2.Guess(rune(letter[0]))
-		data["revealed"] = string(lobby.Game2.Revealed)
-
-	} else if playerName == lobby.Player2 {
+	} else if playerID == lobby.Player2ID {
 		lobby.Game1.Guess(rune(letter[0]))
-		data["revealed"] = string(lobby.Game1.Revealed)
 	}
 
+	BroadcastToLobby(lobbyID, "update")
 }
+
 
 func handleSubmit(conn *websocket.Conn, lobbyID string, playerID string, payload interface{}) {
 	lobby := wsHub.Lobbies[lobbyID]
@@ -167,19 +164,8 @@ func handleSubmit(conn *websocket.Conn, lobbyID string, playerID string, payload
 
 	if lobby.Game1Ready && lobby.Game2Ready {
 		lobby.State = session.StateReady
-		// USE BROADCAST
-		for c, id := range lobby.Clients {
-			log.Println("")
-			data := map[string]string{"type": "update", "revealed": ""}
-			if id == lobby.Player1ID {
-				data["revealed"] = string(lobby.Game2.Revealed)
-			} else if id == lobby.Player2ID {
-				data["revealed"] = string(lobby.Game1.Revealed)
-			}
-			c.WriteJSON(data)
-			start_message := map[string]string{"type": "start_game", "start": "x"}
-			c.WriteJSON(start_message)
-		}
+		BroadcastToLobby(lobbyID, "update")
+		BroadcastToLobby(lobbyID, "start_game")
 	}
 }
 
@@ -212,7 +198,7 @@ func cleanupConnection(lobbyID string, conn *websocket.Conn) {
 	}
 }
 
-func BroadcastToLobby(lobbyID string, msg WSMessage) {
+func BroadcastToLobby(lobbyID string, t string) {
 	wsHub.Lock.Lock()
 	defer wsHub.Lock.Unlock()
 
@@ -223,28 +209,37 @@ func BroadcastToLobby(lobbyID string, msg WSMessage) {
 	}
 	lobby.ConnLock.Lock()
 	defer lobby.ConnLock.Unlock()
-	for conn := range lobby.Clients {
-		if err := conn.WriteJSON(msg); err != nil {
-			log.Println("Broadcast error:", err)
-			conn.Close()
-			delete(lobby.Clients, conn)
+	for conn, id := range lobby.Clients {
+		switch t {
+		case "update":
+			data := map[string]string{"type": "update", "revealed": ""}
+			if id == lobby.Player1ID {
+				data["revealed"] = string(lobby.Game2.Revealed)
+				conn.WriteJSON(data)
+			} else if id == lobby.Player2ID {
+				data["revealed"] = string(lobby.Game1.Revealed)
+				conn.WriteJSON(data)
+			}
+		case "start_game":
+			start_message := map[string]string{"type": "start_game", "start": "x"}
+			conn.WriteJSON(start_message)
 		}
-		log.Printf("Broadcast msg: %v to lobby: %s", msg, lobbyID)
+		log.Printf("Broadcast msg: %s to lobby: %s", t, lobbyID)
 	}
 }
 
-func HandleBroadcastTest(w http.ResponseWriter, r *http.Request) {
-	lobbyID := r.URL.Query().Get("lobby")
-	if lobbyID == "" {
-		http.Error(w, "Missing Lobby ID", http.StatusBadRequest)
-		return
-	}
+// func HandleBroadcastTest(w http.ResponseWriter, r *http.Request) {
+// 	lobbyID := r.URL.Query().Get("lobby")
+// 	if lobbyID == "" {
+// 		http.Error(w, "Missing Lobby ID", http.StatusBadRequest)
+// 		return
+// 	}
 
-	msg := WSMessage{
-		Type:    "broadcast",
-		Payload: "Hello from server!",
-	}
+// 	msg := WSMessage{
+// 		Type:    "broadcast",
+// 		Payload: "Hello from server!",
+// 	}
 
-	BroadcastToLobby(lobbyID, msg)
-	w.Write([]byte("Broadcast sent"))
-}
+// 	BroadcastToLobby(lobbyID, msg)
+// 	w.Write([]byte("Broadcast sent"))
+// }
