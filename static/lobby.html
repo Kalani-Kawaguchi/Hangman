@@ -83,7 +83,9 @@
                 lobbyState = "playing";
                 updateInstruction("Game started! Type a letter to guess.");
             } else if (msg.type === "update") {
+                console.log("Received update:", msg);
                 if (msg.revealed) {
+                    console.log("Received update revealed")
                     document.getElementById("revealedWord").textContent = msg.revealed;
                 }
             }

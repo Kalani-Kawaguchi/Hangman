@@ -101,6 +101,13 @@ func handleCreateLobby(w http.ResponseWriter, r *http.Request) {
 		Value: req.HostName,
 	})
 
+	// Generate Unique Player ID and save it as a cookie
+	playerID := session.GenerateID()
+	http.SetCookie(w, &http.Cookie{
+		Name:  "id",
+		Value: playerID,
+	})
+
 	// lobby is a pointer to the newly created Lobby
 	lobby := session.CreateLobby(req.LobbyName)
 
@@ -110,7 +117,11 @@ func handleCreateLobby(w http.ResponseWriter, r *http.Request) {
 	})
 
 	// assign player to lobby
-	session.JoinLobby(lobby.ID, req.HostName)
+	_, err := session.JoinLobby(lobby.ID, req.HostName, playerID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	log.Printf("Created A Lobby: %s", lobby.ID)
 	w.Header().Set("Content-Type", "application/json")
@@ -126,21 +137,28 @@ func handleJoinLobby(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	lobby, err := session.JoinLobby(req.LobbyID, req.PlayerName)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
 	http.SetCookie(w, &http.Cookie{
 		Name:  "player",
 		Value: req.PlayerName,
+	})
+
+	// Generate Unique Player ID and save it as a cookie and set the lobby player ID
+	playerID := session.GenerateID()
+	http.SetCookie(w, &http.Cookie{
+		Name:  "id",
+		Value: playerID,
 	})
 
 	http.SetCookie(w, &http.Cookie{
 		Name:  "lobby",
 		Value: req.LobbyID,
 	})
+
+	lobby, err := session.JoinLobby(req.LobbyID, req.PlayerName, playerID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	json.NewEncoder(w).Encode(lobby)
 	fmt.Fprintf(w, "Joined lobby")
