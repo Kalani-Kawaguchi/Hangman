@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/Kalani-Kawaguchi/Hangman/internal/game"
 	"github.com/Kalani-Kawaguchi/Hangman/internal/session"
 	"github.com/gorilla/websocket"
 )
@@ -92,7 +93,8 @@ func handleMessage(conn *websocket.Conn, lobbyID string, msg WSMessage) {
 		handleUpdate(conn, lobbyID, msg.Payload)
 	case "guess":
 		handleGuess(conn, lobbyID, msg.Payload)
-	// add the other message type cases...
+	case "submit":
+		handleSubmit(conn, lobbyID, msg.Payload)
 	default:
 		log.Println("Unknown message type:", msg.Type)
 	}
@@ -103,7 +105,50 @@ func handleUpdate(conn *websocket.Conn, lobbyID string, payload interface{}) {
 }
 
 func handleGuess(conn *websocket.Conn, lobbyID string, payload interface{}) {
-	return
+	lobby := wsHub.Lobbies[lobbyID]
+	playerName := lobby.Clients[conn]
+	letter, ok := payload.(string)
+	if !ok {
+		log.Print("Letter could not be asserted to string")
+		return
+	}
+
+	if lobby.State == session.StateWaiting {
+		log.Print("Lobby not ready")
+		return
+	}
+
+	if playerName == lobby.Player1 {
+		lobby.Game2.Guess(rune(letter[0]))
+	} else if playerName == lobby.Player2 {
+		lobby.Game1.Guess(rune(letter[0]))
+	}
+}
+
+func handleSubmit(conn *websocket.Conn, lobbyID string, payload interface{}) {
+	lobby := wsHub.Lobbies[lobbyID]
+	playerName := lobby.Clients[conn]
+	word, ok := payload.(string)
+	if !ok {
+		log.Print("Letter could not be asserted to string")
+		return
+	}
+
+	if playerName == lobby.Player1 {
+		if game.ValidateWord(word) {
+			lobby.Game1 = game.NewGame(word)
+			lobby.Game1Ready = true
+		}
+	} else if playerName == lobby.Player2 {
+		if game.ValidateWord(word) {
+			lobby.Game2 = game.NewGame(word)
+			lobby.Game2Ready = true
+		}
+	}
+
+	if lobby.Game1Ready && lobby.Game2Ready {
+		lobby.State = session.StateReady
+	}
 }
 
 func cleanupConnection(lobbyID string, conn *websocket.Conn) {

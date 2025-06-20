@@ -155,7 +155,7 @@ func handleChooseWord(w http.ResponseWriter, r *http.Request) {
 
 	word := req.Word
 
-	if !game.ValidateWord(word, w) {
+	if !game.ValidateWord(word) {
 		return
 	}
 
@@ -204,11 +204,11 @@ func handleGuessLetter(w http.ResponseWriter, r *http.Request) {
 	letter := req.Letter
 
 	if playerName == lobby_pointer.Player1 {
-		if lobby_pointer.Game2.WinOrLost(w) {
+		if lobby_pointer.Game2.WinOrLost() {
 			return
 		}
 	} else if playerName == lobby_pointer.Player2 {
-		if lobby_pointer.Game1.WinOrLost(w) {
+		if lobby_pointer.Game1.WinOrLost() {
 			return
 		}
 	}
@@ -219,9 +219,9 @@ func handleGuessLetter(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if playerName == lobby_pointer.Player1 {
-		lobby_pointer.Game2.Guess(rune(letter[0]), w)
+		lobby_pointer.Game2.Guess(rune(letter[0]))
 	} else if playerName == lobby_pointer.Player2 {
-		lobby_pointer.Game1.Guess(rune(letter[0]), w)
+		lobby_pointer.Game1.Guess(rune(letter[0]))
 	}
 }
 
