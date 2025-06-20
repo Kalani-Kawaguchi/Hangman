@@ -41,6 +41,7 @@ func main() {
 	r.HandleFunc("/leave-lobby", handleLeaveLobby).Methods("POST")
 	r.HandleFunc("/ws", ws.HandleWebSocket)
 	r.HandleFunc("/broadcast-test", ws.HandleBroadcastTest).Methods("GET")
+	r.HandleFunc("/lobby-state", HandleLobbyState).Methods("GET")
 
 	fs := http.FileServer(http.Dir("./static"))
 	r.PathPrefix("/").Handler(fs)
@@ -48,6 +49,21 @@ func main() {
 	// Start server
 	log.Println("Hangman running on :8080")
 	log.Fatal(http.ListenAndServe(":8080", r))
+}
+
+func HandleLobbyState(w http.ResponseWriter, r *http.Request) {
+	lobbyID := r.URL.Query().Get("lobby")
+	if lobbyID == "" {
+		http.Error(w, "Missing lobby ID", http.StatusBadRequest)
+		return
+	}
+	lobby, err := session.GetLobby(lobbyID)
+	if err != nil {
+		http.Error(w, "Lobby not found", http.StatusNotFound)
+		return
+	}
+	lobbyState := lobby.State
+	json.NewEncoder(w).Encode(map[string]string{"state": string(lobbyState)})
 }
 
 func getLobbyFromCookies(r *http.Request) (*session.Lobby, string, error) {

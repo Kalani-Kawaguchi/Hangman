@@ -4,34 +4,92 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <style>
+        #cursor {
+            display: inline-block;
+            width: 1ch;
+            animation: blink 1s steps(2, start) infinite;
+            color: black;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+    </style>
 </head>
 <body>
+
+    <div id="wordEntrySection">
+        <h2 id="instruction">Enter a word for your opponent to guess:</h2>
+        <h3 id="typedWordDisplay">
+            <span id="typedWord"></span><span id="cursor">|</span>
+        </h3>
+        <button id="submitWordBtn">Submit Word</button>
+    </div>
+
+    <h2 id="wordDisplay">Waiting for opponent to choose word.</h2>
+    <button id="goBack">Go Back</button>
+
     <script>
+        // let ws;
+        let currentWord = "";
+        let lobbyState = "waiting";
+        const playerName = localStorage.getItem("playerName")
         const urlParams = new URLSearchParams(window.location.search);
         const lobbyId = urlParams.get('lobby');
         console.log(lobbyId)
-        const playerName = localStorage.getItem("playerName")
         let ws = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}`)
         let manuallyClosed = false;
-        console.log("Attempting Connection")
+
+        function updateInstruction(text) {
+            document.getElementById("instruction").textContent = text;
+        }
+
+        function updateTypedWordDisplay() {
+            document.getElementById("typedWordDisplay").textContent = currentWord;
+        }
+
+        function updateTypedWordDisplay() {
+            document.getElementById("typedWord").textContent = currentWord || "";
+        }
+
+        function fetchLobbyState() {
+            fetch(`/lobby-state?lobby=${lobbyId}`)
+                .then(res => res.json())
+                .then(data => {
+                    lobbyState = data.state;
+                    if (lobbyState === "playing") {
+                        updateInstruction("Game started! Type a letter to guess.");
+                    }
+                });
+        }
+
+        // function initWebSocket() {
+        // ws = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}`);
 
         ws.onopen = () => {
-            console.log("hello");
-            const message = JSON.parse(event.data);
-            if (msg.type === "update" && msg.payload.revealed) {
-                document.getElementById("WordDisplay").textContent = msg.payload
-            }
-            ws.send(JSON.stringify(message))
-        }
+            console.log("hello, websocket connection opened");
+            // const message = JSON.parse(event.data);
+            // ws.send(JSON.stringify({ type: "update", payload: playerName }));
+            fetchLobbyState(); // Fetch the state on load
+        };
 
         ws.onmessage = (event) => {
             const msg = JSON.parse(event.data);
             console.log("Received:", msg);
-        }
+            if (msg.type === "start_game") {
+                lobbyState = "playing";
+                updateInstruction("Game started! Type a letter to guess.");
+                document.getElementById("revealedWord").textContent = msg.payload.revealed;
+            } else if (msg.type === "update" && msg.payload.revealed) {
+                document.getElementById("revealedWord").textContent = msg.payload.revealed;
+            }
+        };
 
-        ws.onerror = (error) => {
-            console.log(error)
-        }
+        ws.onerror = (error) => console.error("WebSocket error:", error);
+
+        // }
 
         ws.onclose = async () => {
             if (!manuallyClosed) {
@@ -51,13 +109,45 @@
         })
 
         document.addEventListener("keydown", function (e) {
-            cont key = e.key.toLowerCase();
-            if (/^[a-z]$/.test(key)) {
-                ws.send(JSON.stringify({type: "guess", payload: key}));
+            console.log("keydown detected");
+            const key = e.key.toLowerCase();
+
+            if (lobbyState === "waiting" || lobbyState === "ready") {
+                // Typing word
+                if (/^[a-z]$/.test(key)) {
+                    currentWord += key;
+                } else if (e.key === "Backspace") {
+                    currentWord = currentWord.slice(0, -1)
+                }
+                updateTypedWordDisplay();
+            } else if (lobbyState === "playing") {
+                // Making guess
+                const message = {
+                    type: "guess",
+                    payload: key
+                };
+                ws.send(JSON.stringify(message));
             }
         });
+
+        document.getElementById("submitWordBtn").addEventListener("click", () => {
+            if (!currentWord) return alert("Enter a word first.");
+
+            const message = {
+                type: "submit_word",
+                payload: currentWord
+            };
+            ws.send(JSON.stringify(message));
+            
+            // Hide the word entry section once submitted
+            document.getElementById("wordEntrySection").style.display = "none";
+
+            updateInstruction("Waiting for the other player to submit their word...");
+            currentWord = "";
+            updateTypedWordDisplay();
+        });
+
+        // initWebSocket();
     </script>
-    <h2 id="wordDisplay">Loading...</h2>
-    <a id="goBack">Go Back</a>
 </body>
 </html>
