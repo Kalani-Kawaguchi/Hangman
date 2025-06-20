@@ -118,11 +118,17 @@ func handleGuess(conn *websocket.Conn, lobbyID string, payload interface{}) {
 		return
 	}
 
+	data := map[string]string{"type": "update", "revealed": ""}
+	// USE BROADCAST
 	if playerName == lobby.Player1 {
 		lobby.Game2.Guess(rune(letter[0]))
+		data["revealed"] = string(lobby.Game2.Revealed)
+
 	} else if playerName == lobby.Player2 {
 		lobby.Game1.Guess(rune(letter[0]))
+		data["revealed"] = string(lobby.Game1.Revealed)
 	}
+
 }
 
 func handleSubmit(conn *websocket.Conn, lobbyID string, payload interface{}) {
@@ -148,6 +154,18 @@ func handleSubmit(conn *websocket.Conn, lobbyID string, payload interface{}) {
 
 	if lobby.Game1Ready && lobby.Game2Ready {
 		lobby.State = session.StateReady
+		// USE BROADCAST
+		// for c, name := range lobby.Clients {
+		// 	data := map[string]string{"type": "update", "revealed": ""}
+		// 	if name == lobby.Player1 {
+		// 		data["revealed"] = string(lobby.Game2.Revealed)
+		// 	} else if name == lobby.Player2 {
+		// 		data["revealed"] = string(lobby.Game1.Revealed)
+		// 	}
+		// 	c.WriteJSON(data)
+		// 	start_message := map[string]string{"type": "start_game", "start": "x"}
+		// 	c.WriteJSON(start_message)
+		// }
 	}
 }
 

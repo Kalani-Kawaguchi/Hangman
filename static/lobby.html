@@ -20,15 +20,15 @@
 </head>
 <body>
 
+    <h2 id="instruction">Enter a word for your opponent to guess:</h2>
     <div id="wordEntrySection">
-        <h2 id="instruction">Enter a word for your opponent to guess:</h2>
         <h3 id="typedWordDisplay">
             <span id="typedWord"></span><span id="cursor">|</span>
         </h3>
         <button id="submitWordBtn">Submit Word</button>
     </div>
 
-    <h2 id="wordDisplay">Waiting for opponent to choose word.</h2>
+    <h2 id="revealedWord">Waiting for opponent to choose word.</h2>
     <button id="goBack">Go Back</button>
 
     <script>
@@ -50,7 +50,7 @@
             document.getElementById("typedWordDisplay").textContent = currentWord;
         }
 
-        function updateTypedWordDisplay() {
+        function updateTypedWord() {
             document.getElementById("typedWord").textContent = currentWord || "";
         }
 
@@ -79,11 +79,13 @@
             const msg = JSON.parse(event.data);
             console.log("Received:", msg);
             if (msg.type === "start_game") {
+                console.log("Game started");
                 lobbyState = "playing";
                 updateInstruction("Game started! Type a letter to guess.");
-                document.getElementById("revealedWord").textContent = msg.payload.revealed;
-            } else if (msg.type === "update" && msg.payload.revealed) {
-                document.getElementById("revealedWord").textContent = msg.payload.revealed;
+            } else if (msg.type === "update") {
+                if (msg.revealed) {
+                    document.getElementById("revealedWord").textContent = msg.revealed;
+                }
             }
         };
 
@@ -119,7 +121,7 @@
                 } else if (e.key === "Backspace") {
                     currentWord = currentWord.slice(0, -1)
                 }
-                updateTypedWordDisplay();
+                updateTypedWord();
             } else if (lobbyState === "playing") {
                 // Making guess
                 const message = {
@@ -132,9 +134,10 @@
 
         document.getElementById("submitWordBtn").addEventListener("click", () => {
             if (!currentWord) return alert("Enter a word first.");
+            console.log("Submit word event called")
 
             const message = {
-                type: "submit_word",
+                type: "submit",
                 payload: currentWord
             };
             ws.send(JSON.stringify(message));
