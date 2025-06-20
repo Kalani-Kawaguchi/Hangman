@@ -21,17 +21,19 @@ const (
 )
 
 type Lobby struct {
-	ID         string     `json:"id"`
-	Name       string     `json:"name"`
-	Player1    string     `json:"player1"`
-	Player2    string     `json:"player2,omitempty"`
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	Player1    string `json:"player1"`
+	Player2    string `json:"player2,omitempty"`
+	Player1ID  string
+	Player2ID  string
 	State      LobbyState `json:"state"`
 	Created    time.Time  `json:"created"`
 	Game1      game.Game
 	Game2      game.Game
 	Game1Ready bool
 	Game2Ready bool
-	Clients    map[*websocket.Conn]string // active WebSocket clients
+	Clients    map[*websocket.Conn]string // active WebSocket clients. Client: PlayerID
 	ConnLock   sync.Mutex                 // protects Clients map
 }
 
@@ -59,7 +61,7 @@ func CreateLobby(name string) *Lobby {
 	lobbiesMu.Lock()
 	defer lobbiesMu.Unlock()
 
-	id := GenerateLobbyID()
+	id := GenerateID()
 	lobby := &Lobby{
 		ID:         id,
 		Name:       name,
@@ -76,7 +78,7 @@ func CreateLobby(name string) *Lobby {
 }
 
 // JoinLobby assigns a player to an existing lobby
-func JoinLobby(lobbyID, player string) (*Lobby, error) {
+func JoinLobby(lobbyID, playerName string, playerID string) (*Lobby, error) {
 	lobbiesMu.Lock()
 	defer lobbiesMu.Unlock()
 	lobby, exists := lobbies[lobbyID]
@@ -86,9 +88,11 @@ func JoinLobby(lobbyID, player string) (*Lobby, error) {
 
 	// Check which Lobby player to assign to
 	if lobby.Player1 == "" {
-		lobby.Player1 = player
+		lobby.Player1 = playerName
+		lobby.Player1ID = playerID
 	} else if lobby.Player2 == "" {
-		lobby.Player2 = player
+		lobby.Player2 = playerName
+		lobby.Player2ID = playerID
 	} else {
 		return nil, errors.New("lobby already full")
 	}
@@ -120,8 +124,8 @@ func GetLobbyList() []LobbySummary {
 	return availableLobbies
 }
 
-// Helper to generate a random lobby ID
-func GenerateLobbyID() string {
+// Helper to generate a random lobby or Player ID
+func GenerateID() string {
 	const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	const length = 6
 	rand.New(rand.NewSource(time.Now().UnixNano()))

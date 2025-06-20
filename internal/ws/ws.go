@@ -72,12 +72,13 @@ func setupWebSocket(w http.ResponseWriter, r *http.Request) (*websocket.Conn, st
 		wsHub.Lobbies[lobbyID] = lobby
 	}
 
-	playerCookie, err := r.Cookie("player")
+	// Get player's "id" cookie and save it in the client connection
+	playerID, err := r.Cookie("id")
 	if err != nil {
 		return nil, "", fmt.Errorf("player not identified")
 	}
 	lobby.ConnLock.Lock()
-	lobby.Clients[conn] = playerCookie.Value
+	lobby.Clients[conn] = playerID.Value
 	lobby.ConnLock.Unlock()
 
 	log.Println("Added connection to lobby")
@@ -86,25 +87,32 @@ func setupWebSocket(w http.ResponseWriter, r *http.Request) (*websocket.Conn, st
 
 func handleMessage(conn *websocket.Conn, lobbyID string, msg WSMessage) {
 	log.Printf("Received from %s: %v\n", lobbyID, msg)
-	data := map[string]string{"type": "update", "word": "hangman"}
-	conn.WriteJSON(data)
+	// data := map[string]string{"type": "update", "word": "hangman"}
+	// conn.WriteJSON(data)
+
+	lobby, err := session.GetLobby(lobbyID)
+	if err != nil {
+		return
+	}
+	playerID := lobby.Clients[conn]
+
 	switch msg.Type {
 	case "update":
-		handleUpdate(conn, lobbyID, msg.Payload)
+		handleUpdate(conn, lobbyID, playerID, msg.Payload)
 	case "guess":
-		handleGuess(conn, lobbyID, msg.Payload)
+		handleGuess(conn, lobbyID, playerID, msg.Payload)
 	case "submit":
-		handleSubmit(conn, lobbyID, msg.Payload)
+		handleSubmit(conn, lobbyID, playerID, msg.Payload)
 	default:
 		log.Println("Unknown message type:", msg.Type)
 	}
 }
 
-func handleUpdate(conn *websocket.Conn, lobbyID string, payload interface{}) {
+func handleUpdate(conn *websocket.Conn, lobbyID string, playerID string, payload interface{}) {
 	return
 }
 
-func handleGuess(conn *websocket.Conn, lobbyID string, payload interface{}) {
+func handleGuess(conn *websocket.Conn, lobbyID string, playerID string, payload interface{}) {
 	lobby := wsHub.Lobbies[lobbyID]
 	playerName := lobby.Clients[conn]
 	letter, ok := payload.(string)
@@ -131,41 +139,47 @@ func handleGuess(conn *websocket.Conn, lobbyID string, payload interface{}) {
 
 }
 
-func handleSubmit(conn *websocket.Conn, lobbyID string, payload interface{}) {
+func handleSubmit(conn *websocket.Conn, lobbyID string, playerID string, payload interface{}) {
 	lobby := wsHub.Lobbies[lobbyID]
-	playerName := lobby.Clients[conn]
 	word, ok := payload.(string)
 	if !ok {
 		log.Print("Letter could not be asserted to string")
 		return
 	}
 
-	if playerName == lobby.Player1 {
+	if playerID == lobby.Player1ID {
+		log.Println("checking player1ID")
 		if game.ValidateWord(word) {
+			log.Println("validating word for player1")
 			lobby.Game1 = game.NewGame(word)
 			lobby.Game1Ready = true
+			log.Println("New Game1 Created")
 		}
-	} else if playerName == lobby.Player2 {
+	} else if playerID == lobby.Player2ID {
+		log.Println("checking player2ID")
 		if game.ValidateWord(word) {
+			log.Println("validating word for player2")
 			lobby.Game2 = game.NewGame(word)
 			lobby.Game2Ready = true
+			log.Println("New Game2 created")
 		}
 	}
 
 	if lobby.Game1Ready && lobby.Game2Ready {
 		lobby.State = session.StateReady
 		// USE BROADCAST
-		// for c, name := range lobby.Clients {
-		// 	data := map[string]string{"type": "update", "revealed": ""}
-		// 	if name == lobby.Player1 {
-		// 		data["revealed"] = string(lobby.Game2.Revealed)
-		// 	} else if name == lobby.Player2 {
-		// 		data["revealed"] = string(lobby.Game1.Revealed)
-		// 	}
-		// 	c.WriteJSON(data)
-		// 	start_message := map[string]string{"type": "start_game", "start": "x"}
-		// 	c.WriteJSON(start_message)
-		// }
+		for c, id := range lobby.Clients {
+			log.Println("")
+			data := map[string]string{"type": "update", "revealed": ""}
+			if id == lobby.Player1ID {
+				data["revealed"] = string(lobby.Game2.Revealed)
+			} else if id == lobby.Player2ID {
+				data["revealed"] = string(lobby.Game1.Revealed)
+			}
+			c.WriteJSON(data)
+			start_message := map[string]string{"type": "start_game", "start": "x"}
+			c.WriteJSON(start_message)
+		}
 	}
 }
 
@@ -184,12 +198,12 @@ func cleanupConnection(lobbyID string, conn *websocket.Conn) {
 	lobby.ConnLock.Unlock()
 	conn.Close()
 
-	if lobby.Player1 == lobby.Clients[conn] {
+	if lobby.Player1ID == lobby.Clients[conn] {
 		log.Printf("Host left lobby %s", lobbyID)
 		// You could auto-delete the lobby or notify remaining player
 		delete(wsHub.Lobbies, lobbyID)
 		session.DeleteLobby(lobbyID) // delete lobby from session layer too
-	} else if lobby.Player2 == lobby.Clients[conn] {
+	} else if lobby.Player2ID == lobby.Clients[conn] {
 		log.Printf("Guest left lobby %s", lobbyID)
 	}
 	// If no more clients are connected, delete the lobby
