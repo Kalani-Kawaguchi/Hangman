@@ -101,8 +101,6 @@
 
         ws.onerror = (error) => console.error("WebSocket error:", error);
 
-        // }
-
         ws.onclose = async () => {
             if (!manuallyClosed) {
                 await fetch("/leave-lobby", { method: "POST" });
