@@ -126,34 +126,28 @@ func handleGuess(conn *websocket.Conn, lobbyID string, playerID string, payload 
 		return
 	}
 
-	// might be able to refactor those if game status checks
 	if playerID == lobby.Player1ID {
 		lobby.Game2.Guess(rune(letter[0]))
-		if lobby.Game2.WinOrLost() {
-			if lobby.Game2.Status == game.Won {
-				data := map[string]string{"type": "win", "payload": "win"}
-				conn.WriteJSON(data)
-				// can probably put returns after these
-			} else if lobby.Game2.Status == game.Lost {
-				data := map[string]string{"type": "lost", "payload": lobby.Game2.Word}
-				conn.WriteJSON(data)
-			}
-		}
+		sendWinLost(conn, lobby.Game2)
 	} else if playerID == lobby.Player2ID {
 		lobby.Game1.Guess(rune(letter[0]))
-		if lobby.Game1.WinOrLost() {
-			if lobby.Game1.Status == game.Won {
-				data := map[string]string{"type": "win", "payload": "win"}
-				conn.WriteJSON(data)
-			} else if lobby.Game1.Status == game.Lost {
-				data := map[string]string{"type": "lost", "payload": lobby.Game1.Word}
-				conn.WriteJSON(data)
-			}
-		}
+		sendWinLost(conn, lobby.Game1)
 	}
 
 	log.Print("handleGuess")
 	BroadcastToLobby(lobbyID, "update")
+}
+
+func sendWinLost(conn *websocket.Conn, g game.Game) {
+	if g.WinOrLost() {
+		if g.Status == game.Won {
+			data := map[string]string{"type": "win", "payload": "win"}
+			conn.WriteJSON(data)
+		} else if g.Status == game.Lost {
+			data := map[string]string{"type": "lost", "payload": g.Word}
+			conn.WriteJSON(data)
+		}
+	}
 }
 
 func handleSubmit(conn *websocket.Conn, lobbyID string, playerID string, payload interface{}) {
