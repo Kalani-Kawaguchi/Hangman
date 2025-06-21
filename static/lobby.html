@@ -21,6 +21,7 @@
 <body>
 
     <h2 id="instruction">Enter a word for your opponent to guess:</h2>
+    <h3 id="attemptsLeft"></h3>
     <div id="wordEntrySection">
         <h3 id="typedWordDisplay">
             <span id="typedWord"></span><span id="cursor">|</span>
@@ -82,11 +83,13 @@
                 console.log("Game started");
                 lobbyState = "playing";
                 updateInstruction("Game started! Type a letter to guess.");
+                document.getElementById("attemptsLeft").textContent = "6";
             } else if (msg.type === "update") {
                 console.log("Received update:", msg);
                 if (msg.revealed) {
                     console.log("Received update revealed")
                     document.getElementById("revealedWord").textContent = msg.revealed;
+                    document.getElementById("attemptsLeft").textContent = msg.attempts;
                 }
             } else if (msg.type === "win") {
                 updateInstruction("You win!")

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"sync"
 
 	"github.com/Kalani-Kawaguchi/Hangman/internal/game"
@@ -231,12 +232,14 @@ func BroadcastToLobby(lobbyID string, t string) {
 	for conn, id := range lobby.Clients {
 		switch t {
 		case "update":
-			data := map[string]string{"type": "update", "revealed": ""}
+			data := map[string]string{"type": "update", "revealed": "", "attempts": "6"}
 			if id == lobby.Player1ID {
 				data["revealed"] = string(lobby.Game2.Revealed)
+				data["attempts"] = strconv.Itoa(lobby.Game2.AttemptsLeft)
 				conn.WriteJSON(data)
 			} else if id == lobby.Player2ID {
 				data["revealed"] = string(lobby.Game1.Revealed)
+				data["attempts"] = strconv.Itoa(lobby.Game1.AttemptsLeft)
 				conn.WriteJSON(data)
 			}
 		case "start_game":
