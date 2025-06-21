@@ -8,10 +8,6 @@ import (
 	"unicode"
 )
 
-type letters struct {
-	Letters map[rune]bool
-}
-
 type Game struct {
 	Word           string
 	Revealed       []rune
@@ -78,6 +74,10 @@ func setLetters() map[rune]bool {
 }
 
 func (g *Game) Guess(letter rune) bool {
+	if g.Status != InProgress {
+		return false
+	}
+
 	if !ValidateLetter(letter) {
 		return false
 	}
@@ -98,17 +98,9 @@ func (g *Game) Guess(letter rune) bool {
 	if strings.ContainsRune(g.Word, letter) {
 		g.updateMaskedWord(letter)
 		g.checkGameStatus()
-		if g.WinOrLost() {
-			return true
-		}
-		g.DisplayState()
 	} else {
 		g.AttemptsLeft--
 		g.checkGameStatus()
-		if g.WinOrLost() {
-			return true
-		}
-		g.DisplayState()
 	}
 
 	return true
@@ -119,6 +111,12 @@ func (g *Game) updateMaskedWord(letter rune) {
 		if c == letter {
 			g.Revealed[i] = letter
 		}
+	}
+}
+
+func (g *Game) revealMaskedWord() {
+	for i, c := range g.Word {
+		g.Revealed[i] = c
 	}
 }
 
@@ -141,6 +139,7 @@ func (g *Game) WinOrLost() bool {
 
 	if g.Status == Lost {
 		log.Print("You lost")
+		g.revealMaskedWord()
 		return true
 	}
 

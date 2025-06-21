@@ -112,7 +112,6 @@ func handleUpdate(conn *websocket.Conn, lobbyID string, playerID string, payload
 	return
 }
 
-
 func handleGuess(conn *websocket.Conn, lobbyID string, playerID string, payload interface{}) {
 	lobby := wsHub.Lobbies[lobbyID]
 	letter, ok := payload.(string)
@@ -126,15 +125,35 @@ func handleGuess(conn *websocket.Conn, lobbyID string, playerID string, payload 
 		return
 	}
 
+	// might be able to refactor those if game status checks
 	if playerID == lobby.Player1ID {
 		lobby.Game2.Guess(rune(letter[0]))
+		if lobby.Game2.WinOrLost() {
+			if lobby.Game2.Status == game.Won {
+				data := map[string]string{"type": "win", "payload": "win"}
+				conn.WriteJSON(data)
+				// can probably put returns after these
+			} else if lobby.Game2.Status == game.Lost {
+				data := map[string]string{"type": "lost", "payload": lobby.Game2.Word}
+				conn.WriteJSON(data)
+			}
+		}
 	} else if playerID == lobby.Player2ID {
 		lobby.Game1.Guess(rune(letter[0]))
+		if lobby.Game1.WinOrLost() {
+			if lobby.Game1.Status == game.Won {
+				data := map[string]string{"type": "win", "payload": "win"}
+				conn.WriteJSON(data)
+			} else if lobby.Game1.Status == game.Lost {
+				data := map[string]string{"type": "lost", "payload": lobby.Game1.Word}
+				conn.WriteJSON(data)
+			}
+		}
 	}
 
+	log.Print("handleGuess")
 	BroadcastToLobby(lobbyID, "update")
 }
-
 
 func handleSubmit(conn *websocket.Conn, lobbyID string, playerID string, payload interface{}) {
 	lobby := wsHub.Lobbies[lobbyID]

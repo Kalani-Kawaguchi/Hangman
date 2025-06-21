@@ -28,7 +28,7 @@
         <button id="submitWordBtn">Submit Word</button>
     </div>
 
-    <h2 id="revealedWord">Waiting for opponent to choose word.</h2>
+    <h2 id="revealedWord"></h2>
     <button id="goBack">Go Back</button>
 
     <script>
@@ -88,6 +88,11 @@
                     console.log("Received update revealed")
                     document.getElementById("revealedWord").textContent = msg.revealed;
                 }
+            } else if (msg.type === "win") {
+                updateInstruction("You win!")
+            } else if (msg.type === "lost") {
+                updateInstruction("You lost! The word was:")
+                document.getElementById("revealedWord").textContent = msg.payload;
             }
         };
 
