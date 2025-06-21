@@ -88,14 +88,14 @@
                 console.log("Received update:", msg);
                 if (msg.revealed) {
                     console.log("Received update revealed")
-                    document.getElementById("revealedWord").textContent = msg.revealed;
+                    document.getElementById("revealedWord").textContent = msg.revealed.split("").join(" ");
                     document.getElementById("attemptsLeft").textContent = msg.attempts;
                 }
             } else if (msg.type === "win") {
                 updateInstruction("You win!")
             } else if (msg.type === "lost") {
                 updateInstruction("You lost! The word was:")
-                document.getElementById("revealedWord").textContent = msg.payload;
+                document.getElementById("revealedWord").textContent = msg.payload.split("").join(" ");
             }
         };
 
