@@ -8,33 +8,8 @@ import (
 	"unicode"
 )
 
-var letters = map[rune]bool{
-	97:  false, // 'a'
-	98:  false, // 'b'
-	99:  false, // 'c'
-	100: false, // 'd'
-	101: false, // 'e'
-	102: false, // 'f'
-	103: false, // 'g'
-	104: false, // 'h'
-	105: false, // 'i'
-	106: false, // 'j'
-	107: false, // 'k'
-	108: false, // 'l'
-	109: false, // 'm'
-	110: false, // 'n'
-	111: false, // 'o'
-	112: false, // 'p'
-	113: false, // 'q'
-	114: false, // 'r'
-	115: false, // 's'
-	116: false, // 't'
-	117: false, // 'u'
-	118: false, // 'v'
-	119: false, // 'w'
-	120: false, // 'x'
-	121: false, // 'y'
-	122: false, // 'z'
+type letters struct {
+	Letters map[rune]bool
 }
 
 type Game struct {
@@ -88,10 +63,18 @@ func NewGame(word string) Game {
 		Word:           strings.ToLower(word),
 		Revealed:       revealed,
 		AttemptsLeft:   6,
-		Letters:        letters,
+		Letters:        setLetters(),
 		GuessedLetters: make([]rune, 0, 26),
 		Status:         InProgress,
 	}
+}
+
+func setLetters() map[rune]bool {
+	m := make(map[rune]bool, 26)
+	for i := 97; i <= 122; i++ {
+		m[rune(i)] = false
+	}
+	return m
 }
 
 func (g *Game) Guess(letter rune) bool {

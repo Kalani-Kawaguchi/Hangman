@@ -40,7 +40,7 @@ func main() {
 	r.HandleFunc("/list-lobbies", handleListLobbies).Methods("GET")
 	r.HandleFunc("/leave-lobby", handleLeaveLobby).Methods("POST")
 	r.HandleFunc("/ws", ws.HandleWebSocket)
-	r.HandleFunc("/broadcast-test", ws.HandleBroadcastTest).Methods("GET")
+	// r.HandleFunc("/broadcast-test", ws.HandleBroadcastTest).Methods("GET")
 	r.HandleFunc("/lobby-state", HandleLobbyState).Methods("GET")
 
 	fs := http.FileServer(http.Dir("./static"))
