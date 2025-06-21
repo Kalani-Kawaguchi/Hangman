@@ -209,6 +209,7 @@ func cleanupConnection(lobbyID string, conn *websocket.Conn) {
 	// If no more clients are connected, delete the lobby
 	if len(lobby.Clients) == 0 {
 		log.Printf("Lobby %s is empty. Deleting it.", lobbyID)
+		session.DeleteLobby(lobbyID)
 	}
 }
 
@@ -239,6 +240,9 @@ func BroadcastToLobby(lobbyID string, t string) {
 		case "start_game":
 			start_message := map[string]string{"type": "start_game", "start": "x"}
 			conn.WriteJSON(start_message)
+		case "close":
+			data := map[string]string{"type": "close", "message": "close"}
+			conn.WriteJSON(data)
 		}
 		log.Printf("Broadcast msg: %s to lobby: %s", t, lobbyID)
 	}

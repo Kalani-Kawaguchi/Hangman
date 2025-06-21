@@ -41,7 +41,6 @@
         const lobbyId = urlParams.get('lobby');
         console.log(lobbyId)
         let ws = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}`)
-        let manuallyClosed = false;
 
         function updateInstruction(text) {
             document.getElementById("instruction").textContent = text;
@@ -96,14 +95,17 @@
             } else if (msg.type === "lost") {
                 updateInstruction("You lost! The word was:")
                 document.getElementById("revealedWord").textContent = msg.payload.split("").join(" ");
+            } else if (msg.type === "close") {
+                window.location.href = "/index.html";
             }
         };
 
         ws.onerror = (error) => console.error("WebSocket error:", error);
 
         ws.onclose = async () => {
-            if (!manuallyClosed) {
-                await fetch("/leave-lobby", { method: "POST" });
+            const res = await fetch("/leave-lobby", { method: "POST" });
+            if (res.ok) {
+                window.location.href = "/index.html";
             }
         }
 
@@ -111,10 +113,7 @@
             const goBack = document.getElementById("goBack");
             goBack.addEventListener("click", async function(e) {
                 e.preventDefault();
-                manuallyClosed=true
                 ws.close();
-                await fetch("/leave-lobby", { method: "POST" });
-                window.location.href = "/index.html";
             })
         })
 
