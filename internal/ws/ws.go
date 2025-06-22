@@ -198,18 +198,19 @@ func cleanupConnection(lobbyID string, conn *websocket.Conn) {
 	lobby.ConnLock.Unlock()
 	conn.Close()
 
-	if lobby.Player1ID == lobby.Clients[conn] {
-		log.Printf("Host left lobby %s", lobbyID)
-		// You could auto-delete the lobby or notify remaining player
-		delete(wsHub.Lobbies, lobbyID)
-		session.DeleteLobby(lobbyID) // delete lobby from session layer too
-	} else if lobby.Player2ID == lobby.Clients[conn] {
-		log.Printf("Guest left lobby %s", lobbyID)
-	}
+	// if lobby.Player1ID == lobby.Clients[conn] {
+	// 	log.Printf("Host left lobby %s", lobbyID)
+	// 	// You could auto-delete the lobby or notify remaining player
+	// 	delete(wsHub.Lobbies, lobbyID)
+	// 	session.DeleteLobby(lobbyID) // delete lobby from session layer too
+	// } else if lobby.Player2ID == lobby.Clients[conn] {
+	// 	log.Printf("Guest left lobby %s", lobbyID)
+	// }
 	// If no more clients are connected, delete the lobby
 	if len(lobby.Clients) == 0 {
 		log.Printf("Lobby %s is empty. Deleting it.", lobbyID)
 		session.DeleteLobby(lobbyID)
+		delete(wsHub.Lobbies, lobbyID)
 	}
 }
 
@@ -240,9 +241,14 @@ func BroadcastToLobby(lobbyID string, t string) {
 		case "start_game":
 			start_message := map[string]string{"type": "start_game", "start": "x"}
 			conn.WriteJSON(start_message)
-		case "close":
+		case "closeAll":
 			data := map[string]string{"type": "close", "message": "close"}
 			conn.WriteJSON(data)
+		case "closeOne":
+			if id == lobby.Player2ID {
+				data := map[string]string{"type": "close", "message": "close"}
+				conn.WriteJSON(data)
+			}
 		}
 		log.Printf("Broadcast msg: %s to lobby: %s", t, lobbyID)
 	}

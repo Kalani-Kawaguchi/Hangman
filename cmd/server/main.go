@@ -262,8 +262,6 @@ func handleListLobbies(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleLeaveLobby(w http.ResponseWriter, r *http.Request) {
-	log.Print("calling leave lobby endpoint")
-
 	// Get player name and lobby id from cookies
 	lobby, playerName, err := getLobbyFromCookies(r)
 	if err != nil {
@@ -274,25 +272,7 @@ func handleLeaveLobby(w http.ResponseWriter, r *http.Request) {
 
 	// Check which player is trying to leave
 	if playerName == lobby.Player1 {
-		log.Print("inside player1 check")
-		// kick out player2 if they exist
-		if lobby.Player2 != "" {
-			// We'll need to use websocket to notify player2 that they've been kicked out and lobby deleted
-			log.Print("Player 2 kicked")
-			ws.BroadcastToLobby(lobby_id, "close")
-		}
-
-		// Clear player1s lobby cookies
-		http.SetCookie(w, &http.Cookie{
-			Name:   "lobby",
-			Value:  "",
-			Path:   "/",
-			MaxAge: -1,
-		})
-
-		// delete lobby from lobbies
-		session.DeleteLobby(lobby_id)
-		fmt.Fprintln(w, "Lobby deleted. Host has left.")
+		ws.BroadcastToLobby(lobby_id, "closeAll")
 		return
 
 	} else if playerName == lobby.Player2 {
@@ -308,7 +288,7 @@ func handleLeaveLobby(w http.ResponseWriter, r *http.Request) {
 		})
 
 		lobby.State = session.StateWaiting
-		fmt.Fprintln(w, "You have left lobby.")
+		ws.BroadcastToLobby(lobby_id, "closeOne")
 		return
 
 	} else {
