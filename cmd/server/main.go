@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/Kalani-Kawaguchi/Hangman/internal/game"
 	"github.com/Kalani-Kawaguchi/Hangman/internal/session"
@@ -23,6 +24,10 @@ type JoinLobbyRequest struct {
 	PlayerName string `json:"player_name"`
 }
 
+type LobbyRequest struct {
+	LobbyID string `json:"lobby_id"`
+}
+
 type LetterRequest struct {
 	Letter string `json:"guess"`
 }
@@ -38,6 +43,7 @@ func main() {
 	r.HandleFunc("/guess-letter", handleGuessLetter).Methods("POST")
 	r.HandleFunc("/lobby/{id}", handleGetLobby).Methods("GET")
 	r.HandleFunc("/list-lobbies", handleListLobbies).Methods("GET")
+	r.HandleFunc("/list-games", handleListGames).Methods("POST")
 	r.HandleFunc("/leave-lobby", handleLeaveLobby).Methods("POST")
 	r.HandleFunc("/ws", ws.HandleWebSocket)
 	// r.HandleFunc("/broadcast-test", ws.HandleBroadcastTest).Methods("GET")
@@ -296,4 +302,27 @@ func handleLeaveLobby(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "You are not part of this lobby.", http.StatusUnauthorized)
 		return
 	}
+}
+
+func handleListGames(w http.ResponseWriter, r *http.Request) {
+	var req LobbyRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+
+	lobby, err := session.GetLobby(req.LobbyID)
+	if err != nil {
+		http.Error(w, "lobby not found", http.StatusNotFound)
+		return
+	}
+
+	resp := map[string]interface{}{
+		"game1":      lobby.Game1,
+		"game2":      lobby.Game2,
+		"game1Ready": strconv.FormatBool(lobby.Game1Ready),
+		"game2Ready": strconv.FormatBool(lobby.Game2Ready),
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
 }

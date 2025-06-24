@@ -104,9 +104,16 @@ func handleMessage(conn *websocket.Conn, lobbyID string, msg WSMessage) {
 		handleGuess(conn, lobbyID, playerID, msg.Payload)
 	case "submit":
 		handleSubmit(conn, lobbyID, playerID, msg.Payload)
+	case "restart":
+		handleRestart(lobbyID)
 	default:
 		log.Println("Unknown message type:", msg.Type)
 	}
+}
+
+func handleRestart(lobbyID string) {
+	lobby := wsHub.Lobbies[lobbyID]
+	lobby.State = session.StateWaiting
 }
 
 func handleUpdate(conn *websocket.Conn, lobbyID string, playerID string, payload interface{}) {
@@ -272,6 +279,8 @@ func resetLobby(lobbyID string) {
 		log.Fatalln("Lobby not found while resetting")
 	}
 
+	lobby.Game1Ready = false
+	lobby.Game2Ready = false
 	lobby.Game1 = game.Game{}
 	lobby.Game2 = game.Game{}
 }

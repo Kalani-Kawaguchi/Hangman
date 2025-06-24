@@ -132,6 +132,11 @@
                 document.getElementById("typedWordDisplay").innerHTML = "<span id='typedWord'></span><span id='cursor'>|</span>";
                 updateInstruction("Enter a word for your opponent to guess:")
                 lobbyState = "waiting"
+                const message = {
+                    type: "restart",
+                    payload: "r"
+                };
+                ws.send(JSON.stringify(message));
             })
         })
 
