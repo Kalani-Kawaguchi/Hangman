@@ -46,7 +46,6 @@ func main() {
 	r.HandleFunc("/list-games", handleListGames).Methods("POST")
 	r.HandleFunc("/leave-lobby", handleLeaveLobby).Methods("POST")
 	r.HandleFunc("/ws", ws.HandleWebSocket)
-	// r.HandleFunc("/broadcast-test", ws.HandleBroadcastTest).Methods("GET")
 	r.HandleFunc("/lobby-state", HandleLobbyState).Methods("GET")
 
 	fs := http.FileServer(http.Dir("./static"))
@@ -72,22 +71,26 @@ func HandleLobbyState(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"state": string(lobbyState)})
 }
 
-func getLobbyFromCookies(r *http.Request) (*session.Lobby, string, error) {
+func getLobbyFromCookies(r *http.Request) (*session.Lobby, string, string, error) {
 	playerCookie, err := r.Cookie("player")
 	if err != nil {
-		return nil, "", fmt.Errorf("player not identified")
+		return nil, "", "", fmt.Errorf("player not identified")
+	}
+	playerIdCookie, err := r.Cookie("id")
+	if err != nil {
+		return nil, "", "", fmt.Errorf("player id not identified")
 	}
 	lobbyCookie, err := r.Cookie("lobby")
 	if err != nil {
-		return nil, "", fmt.Errorf("lobby not identified")
+		return nil, "", "", fmt.Errorf("lobby not identified")
 	}
 
 	lobby, err := session.GetLobby(lobbyCookie.Value)
 	if err != nil {
-		return nil, "", fmt.Errorf("lobby not found")
+		return nil, "", "", fmt.Errorf("lobby not found")
 	}
 
-	return lobby, playerCookie.Value, nil
+	return lobby, playerCookie.Value, playerIdCookie.Value, nil
 }
 
 func handleRoot(w http.ResponseWriter, r *http.Request) {
@@ -183,7 +186,7 @@ func handleChooseWord(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	lobby_pointer, playerName, err := getLobbyFromCookies(r)
+	lobby_pointer, playerName, _, err := getLobbyFromCookies(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
@@ -214,7 +217,7 @@ func handleGuessLetter(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	lobby_pointer, playerName, err := getLobbyFromCookies(r)
+	lobby_pointer, playerName, _, err := getLobbyFromCookies(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
@@ -269,7 +272,7 @@ func handleListLobbies(w http.ResponseWriter, r *http.Request) {
 
 func handleLeaveLobby(w http.ResponseWriter, r *http.Request) {
 	// Get player name and lobby id from cookies
-	lobby, playerName, err := getLobbyFromCookies(r)
+	lobby, _, playerID, err := getLobbyFromCookies(r)
 	if err != nil {
 		log.Println("Error getting lobby from cookies")
 		http.Error(w, err.Error(), http.StatusUnauthorized)
@@ -278,11 +281,11 @@ func handleLeaveLobby(w http.ResponseWriter, r *http.Request) {
 	lobby_id := lobby.ID
 
 	// Check which player is trying to leave
-	if playerName == lobby.Player1 {
+	if playerID == lobby.Player1ID {
 		ws.BroadcastToLobby(lobby_id, "closeAll")
 		return
 
-	} else if playerName == lobby.Player2 {
+	} else if playerID == lobby.Player2ID {
 		// just have player2 leave the lobby
 		lobby.Player2 = ""
 

@@ -213,14 +213,6 @@ func cleanupConnection(lobbyID string, conn *websocket.Conn) {
 	lobby.ConnLock.Unlock()
 	conn.Close()
 
-	// if lobby.Player1ID == lobby.Clients[conn] {
-	// 	log.Printf("Host left lobby %s", lobbyID)
-	// 	// You could auto-delete the lobby or notify remaining player
-	// 	delete(wsHub.Lobbies, lobbyID)
-	// 	session.DeleteLobby(lobbyID) // delete lobby from session layer too
-	// } else if lobby.Player2ID == lobby.Clients[conn] {
-	// 	log.Printf("Guest left lobby %s", lobbyID)
-	// }
 	// If no more clients are connected, delete the lobby
 	if len(lobby.Clients) == 0 {
 		log.Printf("Lobby %s is empty. Deleting it.", lobbyID)
@@ -284,19 +276,3 @@ func resetLobby(lobbyID string) {
 	lobby.Game1 = game.Game{}
 	lobby.Game2 = game.Game{}
 }
-
-// func HandleBroadcastTest(w http.ResponseWriter, r *http.Request) {
-// 	lobbyID := r.URL.Query().Get("lobby")
-// 	if lobbyID == "" {
-// 		http.Error(w, "Missing Lobby ID", http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	msg := WSMessage{
-// 		Type:    "broadcast",
-// 		Payload: "Hello from server!",
-// 	}
-
-// 	BroadcastToLobby(lobbyID, msg)
-// 	w.Write([]byte("Broadcast sent"))
-// }

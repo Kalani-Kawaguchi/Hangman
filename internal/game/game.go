@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"log"
 	"sort"
 	"strings"
@@ -144,13 +143,4 @@ func (g *Game) WinOrLost() bool {
 	}
 
 	return false
-}
-
-func (g *Game) DisplayState() {
-	fmt.Printf("Word: %s\n", string(g.Revealed))
-	fmt.Printf("Guesses Left: %d\n", g.AttemptsLeft)
-	fmt.Printf("Guessed letters: ")
-	for _, letter := range g.GuessedLetters {
-		fmt.Printf("%c ", letter)
-	}
 }

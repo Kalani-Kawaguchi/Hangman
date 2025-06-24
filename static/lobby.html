@@ -67,9 +67,6 @@
                 });
         }
 
-        // function initWebSocket() {
-        // ws = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}`);
-
         ws.onopen = () => {
             console.log("hello, websocket connection opened");
             // const message = JSON.parse(event.data);
@@ -103,6 +100,7 @@
                 ws.close();
                 window.location.href = "/index.html";
             } else if (msg.type === "end") {
+                lobbyState = "ended";
                 document.getElementById("restartButton").style.display = "";
             }
 
