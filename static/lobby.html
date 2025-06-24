@@ -21,7 +21,7 @@
 <body>
 
     <h2 id="instruction">Enter a word for your opponent to guess:</h2>
-    <h3 id="attemptsLeft"></h3>
+    <h3 id="attemptsLeft" style="display: none"></h3>
     <div id="wordEntrySection">
         <h3 id="typedWordDisplay">
             <span id="typedWord"></span><span id="cursor">|</span>
@@ -30,7 +30,9 @@
     </div>
 
     <h2 id="revealedWord"></h2>
-    <button id="goBack">Go Back</button>
+
+    <button id="restartButton" style="display: none">Restart Game</button>
+    <button id="leaveButton">Leave Lobby</button>
 
     <script>
         // let ws;
@@ -48,7 +50,7 @@
 
         function updateTypedWordDisplay() {
             document.getElementById("typedWordDisplay").textContent = currentWord;
-        }
+    }
 
         function updateTypedWord() {
             document.getElementById("typedWord").textContent = currentWord || "";
@@ -82,6 +84,8 @@
                 console.log("Game started");
                 lobbyState = "playing";
                 updateInstruction("Game started! Type a letter to guess.");
+                document.getElementById("revealedWord").style.display = "";
+                document.getElementById("attemptsLeft").style.display = "";
                 document.getElementById("attemptsLeft").textContent = "6";
             } else if (msg.type === "update") {
                 console.log("Received update:", msg);
@@ -98,7 +102,10 @@
             } else if (msg.type === "close") {
                 ws.close();
                 window.location.href = "/index.html";
+            } else if (msg.type === "end") {
+                document.getElementById("restartButton").style.display = "";
             }
+
         };
 
         ws.onerror = (error) => console.error("WebSocket error:", error);
@@ -107,10 +114,24 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            const goBack = document.getElementById("goBack");
-            goBack.addEventListener("click", async function(e) {
+            const leaveButton = document.getElementById("leaveButton");
+            leaveButton.addEventListener("click", async function(e) {
                 e.preventDefault();
                 await fetch("/leave-lobby", { method: "POST" });
+            })
+        })
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const restartButton = document.getElementById("restartButton");
+            restartButton.addEventListener("click", async function(e) {
+                e.preventDefault();
+                document.getElementById("wordEntrySection").style.display = "";
+                document.getElementById("revealedWord").style.display = "none";
+                document.getElementById("attemptsLeft").style.display = "none";
+                document.getElementById("restartButton").style.display = "none";
+                document.getElementById("typedWordDisplay").innerHTML = "<span id='typedWord'></span><span id='cursor'>|</span>";
+                updateInstruction("Enter a word for your opponent to guess:")
+                lobbyState = "waiting"
             })
         })
 

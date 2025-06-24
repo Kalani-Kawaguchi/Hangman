@@ -265,6 +265,7 @@ func handleLeaveLobby(w http.ResponseWriter, r *http.Request) {
 	// Get player name and lobby id from cookies
 	lobby, playerName, err := getLobbyFromCookies(r)
 	if err != nil {
+		log.Println("Error getting lobby from cookies")
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
@@ -287,7 +288,6 @@ func handleLeaveLobby(w http.ResponseWriter, r *http.Request) {
 			MaxAge: -1,
 		})
 
-		lobby.State = session.StateWaiting
 		ws.BroadcastToLobby(lobby_id, "closeOne")
 		return
 

@@ -134,6 +134,14 @@ func handleGuess(conn *websocket.Conn, lobbyID string, playerID string, payload 
 		sendWinLost(conn, lobby.Game1)
 	}
 
+	// check if player2 is in lobby and both games are finished OR Only player1 is in the lobby and their game is finished
+	if (lobby.Player2 != "" && (lobby.Game1.Status != game.InProgress && lobby.Game2.Status != game.InProgress)) ||
+		(lobby.Game2.Status != game.InProgress && lobby.Player2 == "") {
+		lobby.State = session.StateEnded
+		BroadcastToLobby(lobbyID, "end")
+		return
+	}
+
 	log.Print("handleGuess")
 	BroadcastToLobby(lobbyID, "update")
 }
@@ -249,9 +257,23 @@ func BroadcastToLobby(lobbyID string, t string) {
 				data := map[string]string{"type": "close", "message": "close"}
 				conn.WriteJSON(data)
 			}
+		case "end":
+			data := map[string]string{"type": "end", "message": "end"}
+			conn.WriteJSON(data)
+			resetLobby(lobbyID) // may have an issue with double reset
 		}
 		log.Printf("Broadcast msg: %s to lobby: %s", t, lobbyID)
 	}
+}
+
+func resetLobby(lobbyID string) {
+	lobby, err := session.GetLobby(lobbyID)
+	if err != nil {
+		log.Fatalln("Lobby not found while resetting")
+	}
+
+	lobby.Game1 = game.Game{}
+	lobby.Game2 = game.Game{}
 }
 
 // func HandleBroadcastTest(w http.ResponseWriter, r *http.Request) {
