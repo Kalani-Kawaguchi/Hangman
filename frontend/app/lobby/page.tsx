@@ -15,7 +15,7 @@ export default function Lobby() {
     const lobbyId = params.get('lobby');
 
     useEffect(() => {
-        ws.current = new WebSocket(`/api/ws?lobby=${lobbyId}`);
+        ws.current = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}`);
         if (ws.current) {
             ws.current.onopen = () => {
                 fetchLobbyState();
@@ -46,11 +46,7 @@ export default function Lobby() {
                 }
             };
         }
-        return () => {
-            if (ws.current) {
-                ws.current.close();
-            }
-        };
+        return () => {};
         // eslint-disable-next-line
     }, [lobbyId]);
 

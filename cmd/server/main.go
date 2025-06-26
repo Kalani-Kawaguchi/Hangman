@@ -10,6 +10,7 @@ import (
 	"github.com/Kalani-Kawaguchi/Hangman/internal/game"
 	"github.com/Kalani-Kawaguchi/Hangman/internal/session"
 	"github.com/Kalani-Kawaguchi/Hangman/internal/ws"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
@@ -32,10 +33,8 @@ type LetterRequest struct {
 	Letter string `json:"guess"`
 }
 
-func main() {
+func newRest() *mux.Router {
 	r := mux.NewRouter()
-
-	// Routes
 	r.HandleFunc("/", handleRoot)
 	r.HandleFunc("/create-lobby", handleCreateLobby).Methods("POST")
 	r.HandleFunc("/join-lobby", handleJoinLobby).Methods("POST")
@@ -48,12 +47,21 @@ func main() {
 	r.HandleFunc("/ws", ws.HandleWebSocket)
 	r.HandleFunc("/lobby-state", HandleLobbyState).Methods("GET")
 
+	return r
+}
+
+func main() {
+	r := newRest()
+	credentials := handlers.AllowCredentials()
+	methods := handlers.AllowedMethods([]string{"POST"})
+	origins := handlers.AllowedOrigins([]string{""})
+
 	fs := http.FileServer(http.Dir("./static"))
 	r.PathPrefix("/").Handler(fs)
 
 	// Start server
 	log.Println("Hangman running on :8080")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	log.Fatal(http.ListenAndServe(":8080", handlers.CORS(credentials, methods, origins)(r)))
 }
 
 func HandleLobbyState(w http.ResponseWriter, r *http.Request) {
