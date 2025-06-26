@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link'
 
 export default function CreateLobby() {
     const [lobbyName, setLobbyName] = useState('');
@@ -19,8 +20,9 @@ export default function CreateLobby() {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const body: CreateLobbyRequest = { lobby_name: lobbyName, host_name: playerName };
-        const res = await fetch('/create-lobby', {
+        const res: Response = await fetch('/api/create-lobby', {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
         });
@@ -41,7 +43,7 @@ export default function CreateLobby() {
                 <input value={playerName} onChange={e => setPlayerName(e.target.value)} /><br />
                 <input type="submit" value="Create Lobby" />
             </form>
-            <a href="/index.html">Go Back</a>
+            <Link href="/">Go Back</Link>
         </main>
     );
 }

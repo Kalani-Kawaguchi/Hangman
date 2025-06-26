@@ -59,6 +59,7 @@ func setupWebSocket(w http.ResponseWriter, r *http.Request) (*websocket.Conn, st
 
 	conn, err := Upgrader.Upgrade(w, r, nil)
 	if err != nil {
+		log.Println("no connection")
 		return nil, "", err
 	}
 

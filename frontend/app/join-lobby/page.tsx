@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link'
 
 type Lobby = {
     id: string;
@@ -14,7 +15,7 @@ export default function JoinLobby() {
 
     useEffect(() => {
         const fetchLobbies = async () => {
-            const res = await fetch('/list-lobbies');
+            const res = await fetch('/api/list-lobbies');
             if (res.ok) setLobbies(await res.json());
         };
         fetchLobbies();
@@ -33,8 +34,9 @@ export default function JoinLobby() {
             return;
         }
         const body: JoinLobbyRequest = { lobby_id: lobbyId, player_name: name };
-        const res: Response = await fetch('/join-lobby', {
+        const res: Response = await fetch('/api/join-lobby', {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
         });
@@ -48,20 +50,24 @@ export default function JoinLobby() {
     return (
         <main>
             <ul>
-                {lobbies.map(lobby => (
-                <li key={lobby.id}>
-                    <button type="button" onClick={() => joinLobby(lobby.id)}>
-                    Lobby: {lobby.name}
-                    </button>
-                </li>
-                ))}
+                {Array.isArray(lobbies) && lobbies.length > 0 ? (
+                    lobbies.map(lobby => (
+                        <li key={lobby.id}>
+                            <button type="button" onClick={() => joinLobby(lobby.id)}>
+                                Lobby: {lobby.name}
+                            </button>
+                        </li>
+                    ))
+                ) : (
+                    <li>No lobbies available.</li>
+                )}
             </ul>
             <input
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="Enter your name"
             /><br />
-            <a href="/index.html">Go Back</a>
+            <Link href="/">Go Back</Link>
         </main>
     );
 }

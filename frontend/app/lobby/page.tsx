@@ -15,7 +15,7 @@ export default function Lobby() {
     const lobbyId = params.get('lobby');
 
     useEffect(() => {
-        ws.current = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}`);
+        ws.current = new WebSocket(`/api/ws?lobby=${lobbyId}`);
         if (ws.current) {
             ws.current.onopen = () => {
                 fetchLobbyState();
@@ -55,7 +55,7 @@ export default function Lobby() {
     }, [lobbyId]);
 
     const fetchLobbyState = async () => {
-        const res = await fetch(`/lobby-state?lobby=${lobbyId}`);
+        const res = await fetch(`/api/lobby-state?lobby=${lobbyId}`);
         if (res.ok) {
             const data = await res.json();
             setLobbyState(data.state);
@@ -64,7 +64,7 @@ export default function Lobby() {
     };
 
     const handleLeave = async () => {
-        await fetch('/leave-lobby', { method: 'POST' });
+        await fetch('/api/leave-lobby', { method: 'POST' });
     };
 
     const handleRestart = () => {
