@@ -52,16 +52,17 @@ func newRest() *mux.Router {
 
 func main() {
 	r := newRest()
+	origins := handlers.AllowedOrigins([]string{"http://localhost:3000"})
+	headers := handlers.AllowedHeaders([]string{"Content-Type"})
+	methods := handlers.AllowedMethods([]string{"POST", "GET", "OPTIONS"})
 	credentials := handlers.AllowCredentials()
-	methods := handlers.AllowedMethods([]string{"POST"})
-	origins := handlers.AllowedOrigins([]string{""})
 
 	fs := http.FileServer(http.Dir("./static"))
 	r.PathPrefix("/").Handler(fs)
 
 	// Start server
 	log.Println("Hangman running on :8080")
-	log.Fatal(http.ListenAndServe(":8080", handlers.CORS(credentials, methods, origins)(r)))
+	log.Fatal(http.ListenAndServe(":8080", handlers.CORS(origins, methods, headers, credentials)(r)))
 }
 
 func HandleLobbyState(w http.ResponseWriter, r *http.Request) {

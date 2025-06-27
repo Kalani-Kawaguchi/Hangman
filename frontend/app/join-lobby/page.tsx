@@ -15,7 +15,10 @@ export default function JoinLobby() {
 
     useEffect(() => {
         const fetchLobbies = async () => {
-            const res = await fetch('/api/list-lobbies');
+            const res = await fetch('/api/list-lobbies', {
+                method: 'GET',
+                credentials: 'include',
+            });
             if (res.ok) setLobbies(await res.json());
         };
         fetchLobbies();

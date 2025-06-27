@@ -51,6 +51,11 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 }
 
 func setupWebSocket(w http.ResponseWriter, r *http.Request) (*websocket.Conn, string, error) {
+	// Get player and lobby id's from url
+	playerID := r.URL.Query().Get("id")
+	if playerID == "" {
+		return nil, "", fmt.Errorf("player not identified")
+	}
 	lobbyID := r.URL.Query().Get("lobby")
 	if lobbyID == "" {
 		http.Error(w, "Missing lobby ID", http.StatusBadRequest)
@@ -75,12 +80,12 @@ func setupWebSocket(w http.ResponseWriter, r *http.Request) (*websocket.Conn, st
 	}
 
 	// Get player's "id" cookie and save it in the client connection
-	playerID, err := r.Cookie("id")
-	if err != nil {
-		return nil, "", fmt.Errorf("player not identified")
-	}
+	// playerID, err := r.Cookie("id")
+	// if err != nil {
+	// 	return nil, "", fmt.Errorf("player not identified")
+	// }
 	lobby.ConnLock.Lock()
-	lobby.Clients[conn] = playerID.Value
+	lobby.Clients[conn] = playerID
 	lobby.ConnLock.Unlock()
 
 	log.Println("Added connection to lobby")

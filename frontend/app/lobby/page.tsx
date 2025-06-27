@@ -15,7 +15,9 @@ export default function Lobby() {
     const lobbyId = params.get('lobby');
 
     useEffect(() => {
-        ws.current = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}`);
+        const id = getCookie('id'); // You'll need to write a `getCookie()` helper
+        ws.current = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}&id=${id}`);
+        // ws.current = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}`);
         if (ws.current) {
             ws.current.onopen = () => {
                 fetchLobbyState();
@@ -46,12 +48,24 @@ export default function Lobby() {
                 }
             };
         }
-        return () => {};
+        return () => { };
         // eslint-disable-next-line
     }, [lobbyId]);
 
+    function getCookie(name: string): string | null {
+        const cookies = document.cookie.split(';');
+        for (const cookie of cookies) {
+            const [key, value] = cookie.trim().split('=');
+            if (key === name) return decodeURIComponent(value);
+        }
+        return null;
+    }
+
     const fetchLobbyState = async () => {
-        const res = await fetch(`/api/lobby-state?lobby=${lobbyId}`);
+        const res = await fetch(`/api/lobby-state?lobby=${lobbyId}`, {
+            method: 'GET',
+            credentials: 'include',
+        });
         if (res.ok) {
             const data = await res.json();
             setLobbyState(data.state);
@@ -60,19 +74,22 @@ export default function Lobby() {
     };
 
     const handleLeave = async () => {
-        await fetch('/api/leave-lobby', { method: 'POST' });
+        await fetch('/api/leave-lobby', {
+            method: 'POST',
+            credentials: 'include',
+        });
     };
 
     const handleRestart = () => {
         setShowRestart(false);
         setInstruction('Enter a word for your opponent to guess:');
         setLobbyState('waiting');
-        if (ws.current) {ws.current.send(JSON.stringify({ type: 'restart', payload: 'r' }));}
+        if (ws.current) { ws.current.send(JSON.stringify({ type: 'restart', payload: 'r' })); }
     };
 
     const handleSubmitWord = () => {
         if (!currentWord) return alert('Enter a word first.');
-        if (ws.current) {ws.current.send(JSON.stringify({ type: 'submit', payload: currentWord }));}
+        if (ws.current) { ws.current.send(JSON.stringify({ type: 'submit', payload: currentWord })); }
         setInstruction('Waiting for the other player to submit their word...');
         setCurrentWord('');
     };
@@ -83,7 +100,7 @@ export default function Lobby() {
             if (/^[a-z]$/.test(key)) setCurrentWord((w: string) => w + key);
             else if (e.key === 'Backspace') setCurrentWord((w: string) => w.slice(0, -1));
         } else if (lobbyState === 'playing') {
-            if (ws.current) {ws.current.send(JSON.stringify({ type: 'guess', payload: key }));}
+            if (ws.current) { ws.current.send(JSON.stringify({ type: 'guess', payload: key })); }
         }
     };
 
@@ -101,10 +118,10 @@ export default function Lobby() {
             </h3>
             {(lobbyState === 'waiting' || lobbyState === 'ready') && (
                 <div>
-                <h3>
-                    <span>{currentWord}</span><span style={{ display: 'inline-block', width: '1ch', animation: 'blink 1s steps(2, start) infinite', color: 'black' }}>|</span>
-                </h3>
-                <button onClick={handleSubmitWord}>Submit Word</button>
+                    <h3>
+                        <span>{currentWord}</span><span style={{ display: 'inline-block', width: '1ch', animation: 'blink 1s steps(2, start) infinite', color: 'black' }}>|</span>
+                    </h3>
+                    <button onClick={handleSubmitWord}>Submit Word</button>
                 </div>
             )}
             <h2>{revealedWord}</h2>
