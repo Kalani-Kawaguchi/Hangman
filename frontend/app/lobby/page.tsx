@@ -14,8 +14,8 @@ export default function Lobby() {
     const params = useSearchParams();
     const lobbyId = params.get('lobby');
 
+    const id = getCookie('id');
     useEffect(() => {
-        const id = getCookie('id'); // You'll need to write a `getCookie()` helper
         ws.current = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}&id=${id}`);
         // ws.current = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}`);
         if (ws.current) {
@@ -48,9 +48,14 @@ export default function Lobby() {
                 }
             };
         }
-        return () => { };
+        return () => {
+            if (ws.current) {
+                ws.current.close();
+                ws.current = null;
+            }
+        };
         // eslint-disable-next-line
-    }, [lobbyId]);
+    }, [lobbyId, id]);
 
     function getCookie(name: string): string | null {
         const cookies = document.cookie.split(';');
