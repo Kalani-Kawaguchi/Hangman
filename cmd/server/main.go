@@ -141,10 +141,11 @@ func handleCreateLobby(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("Created A Lobby: %s", lobby.ID)
+	log.Printf("Created A Lobby: %s. Host: %s", lobby.ID, playerID)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
-		"id": lobby.ID,
+		"id":       lobby.ID,
+		"playerID": playerID,
 	})
 }
 
@@ -172,14 +173,15 @@ func handleJoinLobby(w http.ResponseWriter, r *http.Request) {
 		Value: req.LobbyID,
 	})
 
-	lobby, err := session.JoinLobby(req.LobbyID, req.PlayerName, playerID)
+	_, err := session.JoinLobby(req.LobbyID, req.PlayerName, playerID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	json.NewEncoder(w).Encode(lobby)
-	fmt.Fprintf(w, "Joined lobby")
+	json.NewEncoder(w).Encode(map[string]string{
+		"playerID": playerID,
+	})
 }
 
 func handleChooseWord(w http.ResponseWriter, r *http.Request) {

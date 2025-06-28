@@ -15,6 +15,7 @@ export default function CreateLobby() {
 
     interface CreateLobbyResponse {
         id: string;
+        playerID: string;
     }
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -28,7 +29,7 @@ export default function CreateLobby() {
         });
         if (res.ok) {
             const lobby: CreateLobbyResponse = await res.json();
-            router.push(`/lobby?lobby=${lobby.id}`);
+            router.push(`/lobby?lobby=${lobby.id}&playerID=${lobby.playerID}`);
         } else {
             alert('Failed to create lobby');
         }

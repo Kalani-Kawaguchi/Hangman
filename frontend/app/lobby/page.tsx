@@ -13,10 +13,10 @@ export default function Lobby() {
     const router = useRouter();
     const params = useSearchParams();
     const lobbyId = params.get('lobby');
-
-    const id = getCookie('id');
+    const playerId = params.get('playerID')
+    
     useEffect(() => {
-        ws.current = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}&id=${id}`);
+        ws.current = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}&id=${playerId}`);
         // ws.current = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}`);
         if (ws.current) {
             ws.current.onopen = () => {
@@ -55,16 +55,7 @@ export default function Lobby() {
             }
         };
         // eslint-disable-next-line
-    }, [lobbyId, id]);
-
-    function getCookie(name: string): string | null {
-        const cookies = document.cookie.split(';');
-        for (const cookie of cookies) {
-            const [key, value] = cookie.trim().split('=');
-            if (key === name) return decodeURIComponent(value);
-        }
-        return null;
-    }
+    }, [lobbyId]);
 
     const fetchLobbyState = async () => {
         const res = await fetch(`/api/lobby-state?lobby=${lobbyId}`, {

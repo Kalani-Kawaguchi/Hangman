@@ -22,13 +22,17 @@ export default function JoinLobby() {
             if (res.ok) setLobbies(await res.json());
         };
         fetchLobbies();
-        const interval = setInterval(fetchLobbies, 1000);
+        const interval = setInterval(fetchLobbies, 3000);
         return () => clearInterval(interval);
     }, []);
 
     interface JoinLobbyRequest {
         lobby_id: string;
         player_name: string;
+    }
+
+    interface CreateResponse {
+        playerID: string;
     }
 
     const joinLobby = async (lobbyId: string): Promise<void> => {
@@ -44,7 +48,8 @@ export default function JoinLobby() {
             body: JSON.stringify(body),
         });
         if (res.ok) {
-            router.push(`/lobby?lobby=${lobbyId}`);
+            const resp: CreateResponse = await res.json();
+            router.push(`/lobby?lobby=${lobbyId}&playerID=${resp.playerID}`);
         } else {
             alert('Failed to join lobby');
         }
