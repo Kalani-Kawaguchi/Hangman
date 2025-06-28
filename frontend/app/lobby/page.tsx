@@ -27,7 +27,7 @@ export default function Lobby() {
                 if (msg.type === 'start_game') {
                     setLobbyState('playing');
                     setInstruction('Game started! Type a letter to guess.');
-                    setRevealedWord('');
+                    setRevealedWord(msg.revealed.split('').join(' '));
                     setAttemptsLeft(6);
                 } else if (msg.type === 'update') {
                     if (msg.revealed) {
@@ -36,6 +36,7 @@ export default function Lobby() {
                     }
                 } else if (msg.type === 'win') {
                     setInstruction('You win!');
+                    setRevealedWord(msg.payload.split('').join(' '));
                 } else if (msg.type === 'lost') {
                     setInstruction('You lost! The word was:');
                     setRevealedWord(msg.payload.split('').join(' '));
@@ -80,6 +81,7 @@ export default function Lobby() {
         setShowRestart(false);
         setInstruction('Enter a word for your opponent to guess:');
         setLobbyState('waiting');
+        setRevealedWord('')
         if (ws.current) { ws.current.send(JSON.stringify({ type: 'restart', payload: 'r' })); }
     };
 
@@ -121,7 +123,7 @@ export default function Lobby() {
                 </div>
             )}
             <h2>{revealedWord}</h2>
-            {showRestart && <button onClick={handleRestart}>Restart Game</button>}
+            {showRestart && <button onClick={handleRestart}>Restart Game</button>}<br></br>
             <button onClick={handleLeave}>Leave Lobby</button>
             <style>{`
                 @keyframes blink {

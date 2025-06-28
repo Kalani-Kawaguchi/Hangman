@@ -162,7 +162,7 @@ func handleGuess(conn *websocket.Conn, lobbyID string, playerID string, payload 
 func sendWinLost(conn *websocket.Conn, g game.Game) {
 	if g.WinOrLost() {
 		if g.Status == game.Won {
-			data := map[string]string{"type": "win", "payload": "win"}
+			data := map[string]string{"type": "win", "payload": g.Word}
 			conn.WriteJSON(data)
 		} else if g.Status == game.Lost {
 			data := map[string]string{"type": "lost", "payload": g.Word}
@@ -252,8 +252,14 @@ func BroadcastToLobby(lobbyID string, t string) {
 				conn.WriteJSON(data)
 			}
 		case "start_game":
-			start_message := map[string]string{"type": "start_game", "start": "x"}
-			conn.WriteJSON(start_message)
+			start_message := map[string]string{"type": "start_game", "revealed": ""}
+			if id == lobby.Player1ID {
+				start_message["revealed"] = string(lobby.Game2.Revealed)
+				conn.WriteJSON(start_message)
+			} else if id == lobby.Player2ID {
+				start_message["revealed"] = string(lobby.Game1.Revealed)
+				conn.WriteJSON(start_message)
+			}
 		case "closeAll":
 			data := map[string]string{"type": "close", "message": "close"}
 			conn.WriteJSON(data)
