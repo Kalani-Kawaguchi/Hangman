@@ -147,7 +147,10 @@ func handleGuess(conn *websocket.Conn, lobbyID string, playerID string, payload 
 		sendWinLost(lobby.Game1, lobbyID, "p2")
 	}
 
-	// check if player2 is in lobby and both games are finished OR Only player1 is in the lobby and their game is finished
+	// broadcast updated word revealed progress
+	BroadcastToLobby(lobbyID, "update")
+
+	// check if player2 is in lobby and both games are finished OR if Only player1 is in the lobby and their game is finished
 	if (lobby.Player2 != "" && (lobby.Game1.Status != game.InProgress && lobby.Game2.Status != game.InProgress)) ||
 		(lobby.Game2.Status != game.InProgress && lobby.Player2 == "") {
 		lobby.State = session.StateEnded
@@ -155,8 +158,6 @@ func handleGuess(conn *websocket.Conn, lobbyID string, playerID string, payload 
 		return
 	}
 
-	log.Print("handleGuess")
-	BroadcastToLobby(lobbyID, "update")
 }
 
 // Checks if the latest guess results in the game state being updated to win or lost
