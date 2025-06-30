@@ -44,6 +44,7 @@ func newRest() *mux.Router {
 	r.HandleFunc("/list-lobbies", handleListLobbies).Methods("GET")
 	r.HandleFunc("/list-games", handleListGames).Methods("POST")
 	r.HandleFunc("/leave-lobby", handleLeaveLobby).Methods("POST")
+	r.HandleFunc("/player-role", handlePlayerRole).Methods("GET")
 	r.HandleFunc("/ws", ws.HandleWebSocket)
 	r.HandleFunc("/lobby-state", HandleLobbyState).Methods("GET")
 
@@ -339,4 +340,22 @@ func handleListGames(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
+}
+
+func handlePlayerRole(w http.ResponseWriter, r *http.Request) {
+	lobbyID := r.URL.Query().Get("lobby")
+	playerID := r.URL.Query().Get("id")
+
+	lobby, err := session.GetLobby(lobbyID)
+	if err != nil {
+		http.Error(w, "Lobby not found", http.StatusNotFound)
+		return
+	}
+
+	role := "guest"
+	if playerID == lobby.Player1ID {
+		role = "host"
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{"role": role})
 }

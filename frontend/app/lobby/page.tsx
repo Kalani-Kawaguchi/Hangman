@@ -1,23 +1,31 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Game from '../../components/Game';
 
 export default function Lobby() {
     const [currentWord, setCurrentWord] = useState('');
     const [lobbyState, setLobbyState] = useState('waiting');
+    const [isHost, setIsHost] = useState(false);
+    // Variables for player1 game
     const [revealedWord, setRevealedWord] = useState('');
     const [attemptsLeft, setAttemptsLeft] = useState(6);
     const [instruction, setInstruction] = useState('Enter a word for your opponent to guess:');
+    // Variables for player2 game
+    const [opponentRevealed, setOpponentRevealed] = useState('');
+    const [opponentAttempts, setOpponentAttempts] = useState(6);
+    const [opponentInstruction, setOpponentInstruction] = useState('Waiting...');
     const [showRestart, setShowRestart] = useState(false);
+
     const ws = useRef<WebSocket | null>(null);
     const router = useRouter();
     const params = useSearchParams();
     const lobbyId = params.get('lobby');
     const playerId = params.get('playerID')
-    
+
+
     useEffect(() => {
         ws.current = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}&id=${playerId}`);
-        // ws.current = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}`);
         if (ws.current) {
             ws.current.onopen = () => {
                 fetchLobbyState();
@@ -49,12 +57,7 @@ export default function Lobby() {
                 }
             };
         }
-        return () => {
-            if (ws.current) {
-                ws.current.close();
-                ws.current = null;
-            }
-        };
+        return () => { };
         // eslint-disable-next-line
     }, [lobbyId]);
 
@@ -102,6 +105,28 @@ export default function Lobby() {
         }
     };
 
+    // Check if we're the host or guest
+    useEffect(() => {
+        if (!lobbyId || !playerId) return;
+
+        const fetchRole = async () => {
+            try {
+                const res = await fetch(`/api/player-role?lobby=${lobbyId}&id=${playerId}`, {
+                    credentials: 'include',
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setIsHost(data.role === 'host');
+                    console.log(`isHost: ${isHost}`)
+                }
+            } catch (error) {
+                console.error("Failed to fetch role:", error);
+            }
+        };
+
+        fetchRole();
+    }, [lobbyId, playerId, isHost]);
+
     useEffect(() => {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
@@ -109,28 +134,116 @@ export default function Lobby() {
     }, [lobbyState, currentWord]);
 
     return (
-        <main>
-            <h2>{instruction}</h2>
-            <h3 style={{ display: lobbyState === 'playing' ? '' : 'none' }}>
-                Attempts Left: {attemptsLeft}
-            </h3>
-            {(lobbyState === 'waiting' || lobbyState === 'ready') && (
-                <div>
-                    <h3>
-                        <span>{currentWord}</span><span style={{ display: 'inline-block', width: '1ch', animation: 'blink 1s steps(2, start) infinite', color: 'black' }}>|</span>
-                    </h3>
-                    <button onClick={handleSubmitWord}>Submit Word</button>
-                </div>
+        <main style={{ display: 'flex', flexDirection: 'row' }}>
+            {isHost ? (
+                <>
+                    <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
+                        <Game
+                            playerName="You"
+                            revealedWord={revealedWord}
+                            attemptsLeft={attemptsLeft}
+                            instruction={instruction}
+                            isYou={true}
+                        />
+                        {lobbyState === 'waiting' || lobbyState === 'ready' ? (
+                            <div>
+                                <h3>
+                                    <span>{currentWord}</span>
+                                    <span
+                                        style={{
+                                            display: 'inline-block',
+                                            width: '1ch',
+                                            animation: 'blink 1s steps(2, start) infinite',
+                                            color: 'black',
+                                        }}
+                                    >|</span>
+                                </h3>
+                                <button onClick={handleSubmitWord}>Submit Word</button>
+                            </div>
+                        ) : null}
+                        {showRestart && <button onClick={handleRestart}>Restart Game</button>}
+                        <br />
+                        <button onClick={handleLeave}>Leave Lobby</button>
+                    </div>
+                    <Game
+                        playerName="Opponent"
+                        revealedWord={opponentRevealed}
+                        attemptsLeft={opponentAttempts}
+                        instruction={opponentInstruction}
+                        isYou={false}
+                    />
+                </>
+            ) : (
+                <>
+                    <Game
+                        playerName="Opponent"
+                        revealedWord={opponentRevealed}
+                        attemptsLeft={opponentAttempts}
+                        instruction={opponentInstruction}
+                        isYou={false}
+                    />
+                    <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
+                        <Game
+                            playerName="You"
+                            revealedWord={revealedWord}
+                            attemptsLeft={attemptsLeft}
+                            instruction={instruction}
+                            isYou={true}
+                        />
+                        {lobbyState === 'waiting' || lobbyState === 'ready' ? (
+                            <div>
+                                <h3>
+                                    <span>{currentWord}</span>
+                                    <span
+                                        style={{
+                                            display: 'inline-block',
+                                            width: '1ch',
+                                            animation: 'blink 1s steps(2, start) infinite',
+                                            color: 'black',
+                                        }}
+                                    >|</span>
+                                </h3>
+                                <button onClick={handleSubmitWord}>Submit Word</button>
+                            </div>
+                        ) : null}
+                        {showRestart && <button onClick={handleRestart}>Restart Game</button>}
+                        <br />
+                        <button onClick={handleLeave}>Leave Lobby</button>
+                    </div>
+                </>
             )}
-            <h2>{revealedWord}</h2>
-            {showRestart && <button onClick={handleRestart}>Restart Game</button>}<br></br>
-            <button onClick={handleLeave}>Leave Lobby</button>
             <style>{`
                 @keyframes blink {
-                0%, 100% { opacity: 1; }
-                50% { opacity: 0; }
+                  0%, 100% { opacity: 1; }
+                  50% { opacity: 0; }
                 }
-            `}</style>
-        </main>
+          `}</style>
+
+        </main >
+
+        // <main>
+        //     <h2>{instruction}</h2>
+        //     <h3 style={{ display: lobbyState === 'playing' ? '' : 'none' }}>
+        //         Attempts Left: {attemptsLeft}
+        //     </h3>
+        //     {(lobbyState === 'waiting' || lobbyState === 'ready') && (
+        //         <div>
+        //             <h3>
+        //                 <span>{currentWord}</span><span style={{ display: 'inline-block', width: '1ch', animation: 'blink 1s steps(2, start) infinite', color: 'black' }}>|</span>
+        //             </h3>
+        //             <button onClick={handleSubmitWord}>Submit Word</button>
+        //         </div>
+        //     )}
+        //     <h2>{revealedWord}</h2>
+        //     {showRestart && <button onClick={handleRestart}>Restart Game</button>}<br></br>
+        //     <button onClick={handleLeave}>Leave Lobby</button>
+        //     <style>{`
+        //         @keyframes blink {
+        //         0%, 100% { opacity: 1; }
+        //         50% { opacity: 0; }
+        //         }
+        //     `}</style>
+        // </main>
+
     )
 }
