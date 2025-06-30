@@ -141,10 +141,10 @@ func handleGuess(conn *websocket.Conn, lobbyID string, playerID string, payload 
 
 	if playerID == lobby.Player1ID {
 		lobby.Game2.Guess(rune(letter[0]))
-		sendWinLost(conn, lobby.Game2)
+		sendWinLost(lobby.Game2, lobbyID, "p1")
 	} else if playerID == lobby.Player2ID {
 		lobby.Game1.Guess(rune(letter[0]))
-		sendWinLost(conn, lobby.Game1)
+		sendWinLost(lobby.Game1, lobbyID, "p2")
 	}
 
 	// check if player2 is in lobby and both games are finished OR Only player1 is in the lobby and their game is finished
@@ -159,14 +159,22 @@ func handleGuess(conn *websocket.Conn, lobbyID string, playerID string, payload 
 	BroadcastToLobby(lobbyID, "update")
 }
 
-func sendWinLost(conn *websocket.Conn, g game.Game) {
+// Checks if the latest guess results in the game state being updated to win or lost
+// if so, broadcast the corresponding player win/loss
+func sendWinLost(g game.Game, lobbyID string, player string) {
 	if g.WinOrLost() {
 		if g.Status == game.Won {
-			data := map[string]string{"type": "win", "payload": g.Word}
-			conn.WriteJSON(data)
+			if player == "p1" {
+				BroadcastToLobby(lobbyID, "p1Win")
+			} else if player == "p2" {
+				BroadcastToLobby(lobbyID, "p2Win")
+			}
 		} else if g.Status == game.Lost {
-			data := map[string]string{"type": "lost", "payload": g.Word}
-			conn.WriteJSON(data)
+			if player == "p1" {
+				BroadcastToLobby(lobbyID, "p1Lose")
+			} else if player == "p2" {
+				BroadcastToLobby(lobbyID, "p2Lose")
+			}
 		}
 	}
 }
@@ -241,25 +249,43 @@ func BroadcastToLobby(lobbyID string, t string) {
 	for conn, id := range lobby.Clients {
 		switch t {
 		case "update":
-			data := map[string]string{"type": "update", "revealed": "", "attempts": "6"}
+			data := map[string]string{"type": "update", "revealed": "", "attempts": "6", "opponent_revealed": "", "opponent_attempts": "6"}
 			if id == lobby.Player1ID {
 				data["revealed"] = string(lobby.Game2.Revealed)
 				data["attempts"] = strconv.Itoa(lobby.Game2.AttemptsLeft)
+				data["opponent_revealed"] = string(lobby.Game1.Revealed)
+				data["opponent_attempts"] = strconv.Itoa(lobby.Game1.AttemptsLeft)
 				conn.WriteJSON(data)
 			} else if id == lobby.Player2ID {
 				data["revealed"] = string(lobby.Game1.Revealed)
 				data["attempts"] = strconv.Itoa(lobby.Game1.AttemptsLeft)
+				data["opponent_revealed"] = string(lobby.Game2.Revealed)
+				data["opponent_attempts"] = strconv.Itoa(lobby.Game2.AttemptsLeft)
 				conn.WriteJSON(data)
 			}
 		case "start_game":
-			start_message := map[string]string{"type": "start_game", "revealed": ""}
+			start_message := map[string]string{"type": "start_game", "revealed": "", "opponent_revealed": ""}
 			if id == lobby.Player1ID {
 				start_message["revealed"] = string(lobby.Game2.Revealed)
+				start_message["opponent_revealed"] = string(lobby.Game1.Revealed)
 				conn.WriteJSON(start_message)
 			} else if id == lobby.Player2ID {
 				start_message["revealed"] = string(lobby.Game1.Revealed)
+				start_message["opponent_revealed"] = string(lobby.Game2.Revealed)
 				conn.WriteJSON(start_message)
 			}
+		case "p1Win":
+			win_message := map[string]string{"type": "win", "player": "1", "word": lobby.Game2.Word}
+			conn.WriteJSON(win_message)
+		case "p2Win":
+			win_message := map[string]string{"type": "win", "player": "2", "word": lobby.Game1.Word}
+			conn.WriteJSON(win_message)
+		case "p1Lose":
+			lose_message := map[string]string{"type": "lost", "player": "1", "word": lobby.Game2.Word}
+			conn.WriteJSON(lose_message)
+		case "p2Lose":
+			lose_message := map[string]string{"type": "lost", "player": "2", "word": lobby.Game1.Word}
+			conn.WriteJSON(lose_message)
 		case "closeAll":
 			data := map[string]string{"type": "close", "message": "close"}
 			conn.WriteJSON(data)
@@ -271,7 +297,7 @@ func BroadcastToLobby(lobbyID string, t string) {
 		case "end":
 			data := map[string]string{"type": "end", "message": "end"}
 			conn.WriteJSON(data)
-			resetLobby(lobbyID) // may have an issue with double reset
+			resetLobby(lobbyID)
 		}
 		log.Printf("Broadcast msg: %s to lobby: %s", t, lobbyID)
 	}
