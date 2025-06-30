@@ -6,6 +6,7 @@ import Game from '../../components/Game';
 export default function Lobby() {
     const [currentWord, setCurrentWord] = useState('');
     const [lobbyState, setLobbyState] = useState('waiting');
+    const isHostRef = useRef(false); // mose isHost into a useRef to always use the updated value
     const [isHost, setIsHost] = useState(false);
     // Variables for player1 game
     const [revealedWord, setRevealedWord] = useState('');
@@ -34,20 +35,32 @@ export default function Lobby() {
                 const msg = JSON.parse(event.data);
                 if (msg.type === 'start_game') {
                     setLobbyState('playing');
-                    setInstruction('Game started! Type a letter to guess.');
+                    setInstruction('Type a letter to guess.');
                     setRevealedWord(msg.revealed.split('').join(' '));
                     setAttemptsLeft(6);
+                    setOpponentInstruction('');
+                    setOpponentRevealed(msg.opponent_revealed.split('').join(' '));
+                    setOpponentAttempts(6);
                 } else if (msg.type === 'update') {
                     if (msg.revealed) {
                         setRevealedWord(msg.revealed.split('').join(' '));
+                        setOpponentRevealed(msg.opponent_revealed.split('').join(' '));
                         setAttemptsLeft(msg.attempts);
+                        setOpponentAttempts(msg.opponent_attempts);
                     }
                 } else if (msg.type === 'win') {
-                    setInstruction('You win!');
-                    setRevealedWord(msg.payload.split('').join(' '));
+                    console.log(`Player ${msg.player} won. You are the host: ${isHost}.`)
+                    if ((msg.player == "1" && isHostRef.current) || (msg.player == "2" && !isHostRef.current)) {
+                        setInstruction('You win!');
+                        setRevealedWord(msg.word.split('').join(' '));
+                    } else if ((msg.player == "1" && !isHost) || (msg.player == "2" && isHost)) {
+                        setOpponentInstruction("Opponent won!");
+                        setOpponentRevealed(msg.word.split('').join(' '));
+                    }
+
                 } else if (msg.type === 'lost') {
                     setInstruction('You lost! The word was:');
-                    setRevealedWord(msg.payload.split('').join(' '));
+                    setRevealedWord(msg.word.split('').join(' '));
                 } else if (msg.type === 'close') {
                     if (ws.current) ws.current.close();
                     router.push('/');
@@ -69,7 +82,7 @@ export default function Lobby() {
         if (res.ok) {
             const data = await res.json();
             setLobbyState(data.state);
-            if (data.state === 'playing') setInstruction('Game started! Type a letter to guess.');
+            if (data.state === 'playing') setInstruction('Type a letter to guess.');
         }
     };
 
@@ -117,6 +130,7 @@ export default function Lobby() {
                 if (res.ok) {
                     const data = await res.json();
                     setIsHost(data.role === 'host');
+                    isHostRef.current = data.role === 'host';
                     console.log(`isHost: ${isHost}`)
                 }
             } catch (error) {
@@ -125,7 +139,7 @@ export default function Lobby() {
         };
 
         fetchRole();
-    }, [lobbyId, playerId, isHost]);
+    }, [playerId, lobbyId, isHost]);
 
     useEffect(() => {
         window.addEventListener('keydown', handleKeyDown);
