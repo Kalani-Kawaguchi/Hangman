@@ -14,11 +14,11 @@ export default function Lobby() {
     const [p2Restarted, setP2Restarted] = useState(false);
     // Variables for player1 game
     const [revealedWord, setRevealedWord] = useState('');
-    const [attemptsLeft, setAttemptsLeft] = useState(6);
+    const [attemptsLeft, setAttemptsLeft] = useState("6");
     const [instruction, setInstruction] = useState('Enter a word for your opponent to guess:');
     // Variables for player2 game
     const [opponentRevealed, setOpponentRevealed] = useState('');
-    const [opponentAttempts, setOpponentAttempts] = useState(6);
+    const [opponentAttempts, setOpponentAttempts] = useState("6");
     const [opponentInstruction, setOpponentInstruction] = useState('Picking a word.');
     const [showRestart, setShowRestart] = useState(false);
 
@@ -51,10 +51,10 @@ export default function Lobby() {
                 setLobbyState('playing');
                 setInstruction('Type a letter to guess.');
                 setRevealedWord(msg.revealed.split('').join(' '));
-                setAttemptsLeft(6);
+                setAttemptsLeft("6");
                 setOpponentInstruction('');
                 setOpponentRevealed(msg.opponent_revealed.split('').join(' '));
-                setOpponentAttempts(6);
+                setOpponentAttempts("6");
                 setP1Restarted(false);
                 isP1Restarted.current = false;
                 setP2Restarted(false);
@@ -63,8 +63,8 @@ export default function Lobby() {
                 if (msg.revealed) {
                     setRevealedWord(msg.revealed.split('').join(' '));
                     setOpponentRevealed(msg.opponent_revealed.split('').join(' '));
-                    setAttemptsLeft(msg.attempts);
-                    setOpponentAttempts(msg.opponent_attempts);
+                    setAttemptsLeft(String(msg.attempts));
+                    setOpponentAttempts(String(msg.opponent_attempts));
                 }
             } else if (msg.type === 'win') {
                 console.log(`Player ${msg.player} won. You are the host: ${isHostRef.current}.`)
@@ -223,8 +223,8 @@ export default function Lobby() {
                     </div>
                     <Game
                         playerName="Opponent"
-                        revealedWord={opponentRevealed}
-                        attemptsLeft={opponentAttempts}
+                        revealedWord={isP2Restarted.current ? "" : opponentRevealed}
+                        attemptsLeft={isP2Restarted.current ? "" : opponentAttempts}
                         instruction={opponentInstruction}
                         isYou={false}
                     />
@@ -233,8 +233,8 @@ export default function Lobby() {
                 <>
                     <Game
                         playerName="Opponent"
-                        revealedWord={opponentRevealed}
-                        attemptsLeft={opponentAttempts}
+                        revealedWord={isP1Restarted.current ? "" : opponentRevealed}
+                        attemptsLeft={isP1Restarted.current ? "" : opponentAttempts}
                         instruction={opponentInstruction}
                         isYou={false}
                     />

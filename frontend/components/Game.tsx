@@ -1,7 +1,7 @@
 type GameProps = {
     playerName: string;
     revealedWord: string;
-    attemptsLeft: number;
+    attemptsLeft: string;
     instruction: string;
     isYou: boolean;
 };
