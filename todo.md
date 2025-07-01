@@ -1,9 +1,5 @@
 # TODO:
 
-* After a player has submit a word, update their instruction on other screen 
-from saying "Picking a Word" to something like "Waiting for you to pick a word"
-or "Submitted their word"
-
 * If player 2 leaves after game is over, and another player joins before
 player 1 clicks play again, player 2 can't submit a word.
 
