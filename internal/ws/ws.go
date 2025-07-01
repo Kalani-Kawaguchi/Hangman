@@ -111,14 +111,24 @@ func handleMessage(conn *websocket.Conn, lobbyID string, msg WSMessage) {
 	case "submit":
 		handleSubmit(conn, lobbyID, playerID, msg.Payload)
 	case "restart":
-		handleRestart(lobbyID)
+		handleRestart(lobbyID, msg.Payload)
 	default:
 		log.Println("Unknown message type:", msg.Type)
 	}
 }
 
-func handleRestart(lobbyID string) {
+func handleRestart(lobbyID string, payload interface{}) {
+	playerID, ok := payload.(string)
+	if !ok {
+		log.Print("playerID not found")
+		return
+	}
 	lobby := wsHub.Lobbies[lobbyID]
+	if playerID == lobby.Player1ID {
+		BroadcastToLobby(lobbyID, "p1Restart")
+	} else if playerID == lobby.Player2ID {
+		BroadcastToLobby(lobbyID, "p2Restart")
+	}
 	lobby.State = session.StateWaiting
 }
 
@@ -287,6 +297,12 @@ func BroadcastToLobby(lobbyID string, t string) {
 		case "p2Lose":
 			lose_message := map[string]string{"type": "lost", "player": "2", "word": lobby.Game1.Word}
 			conn.WriteJSON(lose_message)
+		case "p1Restart":
+			restart_message := map[string]string{"type": "restart", "player": "1"}
+			conn.WriteJSON(restart_message)
+		case "p2Restart":
+			restart_message := map[string]string{"type": "restart", "player": "2"}
+			conn.WriteJSON(restart_message)
 		case "closeAll":
 			data := map[string]string{"type": "close", "message": "close"}
 			conn.WriteJSON(data)

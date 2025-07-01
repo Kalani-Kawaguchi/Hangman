@@ -8,6 +8,8 @@ export default function Lobby() {
     const [lobbyState, setLobbyState] = useState('waiting');
     const isHostRef = useRef(false); // mose isHost into a useRef to always use the updated value
     const [isHost, setIsHost] = useState(false);
+    const [p1Restarted, setP1Restarted] = useState(false);
+    const [p2Restarted, setP2Restarted] = useState(false);
     // Variables for player1 game
     const [revealedWord, setRevealedWord] = useState('');
     const [attemptsLeft, setAttemptsLeft] = useState(6);
@@ -15,7 +17,7 @@ export default function Lobby() {
     // Variables for player2 game
     const [opponentRevealed, setOpponentRevealed] = useState('');
     const [opponentAttempts, setOpponentAttempts] = useState(6);
-    const [opponentInstruction, setOpponentInstruction] = useState('Waiting...');
+    const [opponentInstruction, setOpponentInstruction] = useState('Picking a word.');
     const [showRestart, setShowRestart] = useState(false);
 
     const ws = useRef<WebSocket | null>(null);
@@ -41,6 +43,8 @@ export default function Lobby() {
                     setOpponentInstruction('');
                     setOpponentRevealed(msg.opponent_revealed.split('').join(' '));
                     setOpponentAttempts(6);
+                    setP1Restarted(false);
+                    setP2Restarted(false);
                 } else if (msg.type === 'update') {
                     if (msg.revealed) {
                         setRevealedWord(msg.revealed.split('').join(' '));
@@ -66,6 +70,20 @@ export default function Lobby() {
                     } else if ((msg.player == "1" && !isHostRef.current) || (msg.player == "2" && isHostRef.current)) {
                         setOpponentInstruction("Game Over! The word was:");
                         setOpponentRevealed(msg.word.split('').join(' '));
+                    }
+                } else if (msg.type === 'restart') {
+                    console.log(`Player ${msg.player} wants to play again.`)
+                    if (msg.player == "1" && !isHostRef.current) {
+                        setOpponentInstruction('Wants to play again.');
+                        setOpponentRevealed("");
+                        setP1Restarted(true);
+                    } else if (msg.player == "2" && isHostRef.current) {
+                        setOpponentInstruction('Wants to play again.');
+                        setOpponentRevealed("");
+                        setP2Restarted(true);
+                    }
+                    if (p1Restarted && p2Restarted) {
+                        setOpponentInstruction("Picking a word.");
                     }
                 } else if (msg.type === 'close') {
                     if (ws.current) ws.current.close();
@@ -104,7 +122,12 @@ export default function Lobby() {
         setInstruction('Enter a word for your opponent to guess:');
         setRevealedWord('')
         setLobbyState('waiting');
-        if (ws.current) { ws.current.send(JSON.stringify({ type: 'restart', payload: 'r' })); }
+        if (isHostRef.current) {
+            setP1Restarted(true);
+        } else {
+            setP2Restarted(true);
+        }
+        if (ws.current) { ws.current.send(JSON.stringify({ type: 'restart', payload: playerId })); }
     };
 
     const handleSubmitWord = () => {
@@ -243,30 +266,5 @@ export default function Lobby() {
           `}</style>
 
         </main >
-
-        // <main>
-        //     <h2>{instruction}</h2>
-        //     <h3 style={{ display: lobbyState === 'playing' ? '' : 'none' }}>
-        //         Attempts Left: {attemptsLeft}
-        //     </h3>
-        //     {(lobbyState === 'waiting' || lobbyState === 'ready') && (
-        //         <div>
-        //             <h3>
-        //                 <span>{currentWord}</span><span style={{ display: 'inline-block', width: '1ch', animation: 'blink 1s steps(2, start) infinite', color: 'black' }}>|</span>
-        //             </h3>
-        //             <button onClick={handleSubmitWord}>Submit Word</button>
-        //         </div>
-        //     )}
-        //     <h2>{revealedWord}</h2>
-        //     {showRestart && <button onClick={handleRestart}>Restart Game</button>}<br></br>
-        //     <button onClick={handleLeave}>Leave Lobby</button>
-        //     <style>{`
-        //         @keyframes blink {
-        //         0%, 100% { opacity: 1; }
-        //         50% { opacity: 0; }
-        //         }
-        //     `}</style>
-        // </main>
-
     )
 }
