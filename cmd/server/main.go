@@ -179,6 +179,9 @@ func handleJoinLobby(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	// Notify lobby that a player has joined
+	fmt.Println("Broadcasting a player join")
+	ws.BroadcastToLobby(req.LobbyID, "join")
 
 	json.NewEncoder(w).Encode(map[string]string{
 		"playerID": playerID,

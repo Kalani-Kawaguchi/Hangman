@@ -27,6 +27,8 @@ export default function Lobby() {
     const params = useSearchParams();
     const lobbyId = params.get('lobby');
     const playerId = params.get('playerID')
+    const opponentExistsRef = useRef(false);
+    const [opponentExists, setOpponentExists] = useState(false);
 
 
     useEffect(() => {
@@ -59,6 +61,7 @@ export default function Lobby() {
                 isP1Restarted.current = false;
                 setP2Restarted(false);
                 isP2Restarted.current = false;
+
             } else if (msg.type === 'update') {
                 if (msg.revealed) {
                     setRevealedWord(msg.revealed.split('').join(' '));
@@ -66,6 +69,7 @@ export default function Lobby() {
                     setAttemptsLeft(String(msg.attempts));
                     setOpponentAttempts(String(msg.opponent_attempts));
                 }
+
             } else if (msg.type === 'win') {
                 console.log(`Player ${msg.player} won. You are the host: ${isHostRef.current}.`)
                 if ((msg.player == "1" && isHostRef.current) || (msg.player == "2" && !isHostRef.current)) {
@@ -85,6 +89,19 @@ export default function Lobby() {
                     setOpponentInstruction("Game Over! The word was:");
                     setOpponentRevealed(msg.word.split('').join(' '));
                 }
+
+            } else if (msg.type === 'join') {
+                console.log('A player joined the lobby');
+                if (isHostRef.current) {
+                    setOpponentExists(true)
+                    opponentExistsRef.current = true;
+                }
+                console.log(`opp exists: ${opponentExistsRef.current}`);
+
+            } else if (msg.type === 'submit') {
+                if ((isHostRef.current && msg.player === '2') || (!isHostRef.current && msg.player === '1'))
+                    setOpponentInstruction("Ready. Waiting for you...");
+
             } else if (msg.type === 'restart') {
                 console.log(`Player ${msg.player} wants to play again.`)
                 if (msg.player == "1" && !isHostRef.current) {
@@ -92,21 +109,31 @@ export default function Lobby() {
                     setOpponentRevealed("");
                     setP1Restarted(true);
                     isP1Restarted.current = true;
-                    if (isP1Restarted.current) {console.log("Set P1 to true");}
+                    if (isP1Restarted.current) { console.log("Set P1 to true"); }
                 } else if (msg.player == "2" && isHostRef.current) {
                     setOpponentInstruction('Wants to play again.');
                     setOpponentRevealed("");
                     setP2Restarted(true);
                     isP2Restarted.current = true;
-                    if (isP2Restarted.current) {console.log("Set P2 to true");}
+                    if (isP2Restarted.current) { console.log("Set P2 to true"); }
                 }
                 if (isP1Restarted.current && isP2Restarted.current) {
                     console.log("Both restarted");
                     setOpponentInstruction("Picking a word.");
                 }
+
             } else if (msg.type === 'close') {
-                if (ws.current) ws.current.close();
-                router.push('/');
+                console.log(`Player ${msg.player} left lobby`);
+                if (msg.player === '2' && isHostRef.current) {
+                    setOpponentExists(false);
+                    opponentExistsRef.current = false;
+                    console.log(`opp exists: ${opponentExistsRef.current}`);
+                }
+                if (msg.player === '1' || msg.player === '2' && !isHostRef.current) {
+                    if (ws.current) ws.current.close();
+                    router.push('/');
+                }
+
             } else if (msg.type === 'end') {
                 setLobbyState('ended');
                 setShowRestart(true);
@@ -155,16 +182,17 @@ export default function Lobby() {
         if (!currentWord) return alert('Enter a word first.');
         if (ws.current) { ws.current.send(JSON.stringify({ type: 'submit', payload: currentWord })); }
         setInstruction('Waiting for the other player to submit their word...');
+        // send a msg to backend telling other client to update opponents instruction to "They have submit their word"
+        // if (ws.current) { ws.current.send(JSON.stringify({ type: 'submit', payload: "" })); }
         setCurrentWord('');
         setLobbyState('ready');
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
         const key: string = e.key.toLowerCase();
-        // if (lobbyState === 'waiting' || lobbyState === 'ready') {
         if (lobbyState === 'waiting') {
             if (/^[a-z]$/.test(key)) setCurrentWord((w: string) => w + key);
-            else if (e.key === 'Backspace') {setCurrentWord((w: string) => w.slice(0, -1)); e.preventDefault();}
+            else if (e.key === 'Backspace') { setCurrentWord((w: string) => w.slice(0, -1)); e.preventDefault(); }
         } else if (lobbyState === 'playing') {
             if (ws.current) { ws.current.send(JSON.stringify({ type: 'guess', payload: key })); }
         }
@@ -183,7 +211,11 @@ export default function Lobby() {
                     const data = await res.json();
                     setIsHost(data.role === 'host');
                     isHostRef.current = data.role === 'host';
-                    console.log(`isHost: ${isHost}`)
+                    if (!isHostRef.current) {
+                        setOpponentExists(true);
+                        opponentExistsRef.current = true; // If you're player 2, your opponent should always exist.
+                        console.log(`isHost: ${isHost}`)
+                    }
                 }
             } catch (error) {
                 console.error("Failed to fetch role:", error);
@@ -211,7 +243,6 @@ export default function Lobby() {
                             instruction={instruction}
                             isYou={true}
                         />
-                        {/* {lobbyState === 'waiting' || lobbyState === 'ready' ? ( */}
                         {lobbyState === 'waiting' ? (
                             <div>
                                 <button onClick={handleSubmitWord}>Submit Word</button>
@@ -221,13 +252,23 @@ export default function Lobby() {
                         <br />
                         <button onClick={handleLeave}>Leave Lobby</button>
                     </div>
-                    <Game
-                        playerName="Opponent"
-                        revealedWord={isP2Restarted.current ? "" : opponentRevealed}
-                        attemptsLeft={isP2Restarted.current ? "" : opponentAttempts}
-                        instruction={opponentInstruction}
-                        isYou={false}
-                    />
+                    <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
+                        {opponentExists ? (
+
+                            <Game
+                                playerName="Opponent"
+                                revealedWord={isP2Restarted.current ? "" : opponentRevealed}
+                                attemptsLeft={isP2Restarted.current ? "" : opponentAttempts}
+                                instruction={opponentInstruction}
+                                isYou={false}
+                            />
+
+                        ) : (
+                            <div>
+                                <h2>Waiting for an opponent to join</h2>
+                            </div>
+                        )}
+                    </div>
                 </>
             ) : (
                 <>

@@ -79,11 +79,6 @@ func setupWebSocket(w http.ResponseWriter, r *http.Request) (*websocket.Conn, st
 		wsHub.Lobbies[lobbyID] = lobby
 	}
 
-	// Get player's "id" cookie and save it in the client connection
-	// playerID, err := r.Cookie("id")
-	// if err != nil {
-	// 	return nil, "", fmt.Errorf("player not identified")
-	// }
 	lobby.ConnLock.Lock()
 	lobby.Clients[conn] = playerID
 	lobby.ConnLock.Unlock()
@@ -204,6 +199,7 @@ func handleSubmit(conn *websocket.Conn, lobbyID string, playerID string, payload
 			log.Println("validating word for player1")
 			lobby.Game1 = game.NewGame(word)
 			lobby.Game1Ready = true
+			BroadcastToLobby(lobbyID, "p1Submit")
 			log.Println("New Game1 Created")
 		}
 	} else if playerID == lobby.Player2ID {
@@ -212,6 +208,7 @@ func handleSubmit(conn *websocket.Conn, lobbyID string, playerID string, payload
 			log.Println("validating word for player2")
 			lobby.Game2 = game.NewGame(word)
 			lobby.Game2Ready = true
+			BroadcastToLobby(lobbyID, "p2Submit")
 			log.Println("New Game2 created")
 		}
 	}
@@ -286,6 +283,15 @@ func BroadcastToLobby(lobbyID string, t string) {
 				start_message["opponent_revealed"] = string(lobby.Game2.Revealed)
 				conn.WriteJSON(start_message)
 			}
+		case "join":
+			join_message := map[string]string{"type": "join", "message": "join"}
+			conn.WriteJSON(join_message)
+		case "p1Submit":
+			submit_message := map[string]string{"type": "submit", "player": "1"}
+			conn.WriteJSON(submit_message)
+		case "p2Submit":
+			submit_message := map[string]string{"type": "submit", "player": "2"}
+			conn.WriteJSON(submit_message)
 		case "p1Win":
 			win_message := map[string]string{"type": "win", "player": "1", "word": lobby.Game2.Word}
 			conn.WriteJSON(win_message)
@@ -305,13 +311,11 @@ func BroadcastToLobby(lobbyID string, t string) {
 			restart_message := map[string]string{"type": "restart", "player": "2"}
 			conn.WriteJSON(restart_message)
 		case "closeAll":
-			data := map[string]string{"type": "close", "message": "close"}
+			data := map[string]string{"type": "close", "message": "close", "player": "1"}
 			conn.WriteJSON(data)
 		case "closeOne":
-			if id == lobby.Player2ID {
-				data := map[string]string{"type": "close", "message": "close"}
-				conn.WriteJSON(data)
-			}
+			data := map[string]string{"type": "close", "message": "close", "player": "2"}
+			conn.WriteJSON(data)
 		case "end":
 			data := map[string]string{"type": "end", "message": "end"}
 			conn.WriteJSON(data)
