@@ -237,6 +237,7 @@ func cleanupConnection(lobbyID string, conn *websocket.Conn) {
 	delete(lobby.Clients, conn)
 	lobby.ConnLock.Unlock()
 	conn.Close()
+	log.Printf("Len of Clients: %d", len(lobby.Clients))
 
 	// If no more clients are connected, delete the lobby
 	if len(lobby.Clients) == 0 {

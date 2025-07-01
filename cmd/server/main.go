@@ -291,6 +291,7 @@ func handleLeaveLobby(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	lobby_id := lobby.ID
+	log.Printf("Leaving Lobby: %s and Player: %s", lobby_id, playerID)
 
 	// Check which player is trying to leave
 	if playerID == lobby.Player1ID {

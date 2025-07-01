@@ -8,7 +8,9 @@ export default function Lobby() {
     const [lobbyState, setLobbyState] = useState('waiting');
     const isHostRef = useRef(false); // mose isHost into a useRef to always use the updated value
     const [isHost, setIsHost] = useState(false);
+    const isP1Restarted = useRef(false);
     const [p1Restarted, setP1Restarted] = useState(false);
+    const isP2Restarted = useRef(false);
     const [p2Restarted, setP2Restarted] = useState(false);
     // Variables for player1 game
     const [revealedWord, setRevealedWord] = useState('');
@@ -28,75 +30,92 @@ export default function Lobby() {
 
 
     useEffect(() => {
-        ws.current = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}&id=${playerId}`);
-        if (ws.current) {
-            ws.current.onopen = () => {
-                fetchLobbyState();
-            };
-            ws.current.onmessage = (event: MessageEvent) => {
-                const msg = JSON.parse(event.data);
-                if (msg.type === 'start_game') {
-                    setLobbyState('playing');
-                    setInstruction('Type a letter to guess.');
-                    setRevealedWord(msg.revealed.split('').join(' '));
-                    setAttemptsLeft(6);
-                    setOpponentInstruction('');
-                    setOpponentRevealed(msg.opponent_revealed.split('').join(' '));
-                    setOpponentAttempts(6);
-                    setP1Restarted(false);
-                    setP2Restarted(false);
-                } else if (msg.type === 'update') {
-                    if (msg.revealed) {
-                        setRevealedWord(msg.revealed.split('').join(' '));
-                        setOpponentRevealed(msg.opponent_revealed.split('').join(' '));
-                        setAttemptsLeft(msg.attempts);
-                        setOpponentAttempts(msg.opponent_attempts);
-                    }
-                } else if (msg.type === 'win') {
-                    console.log(`Player ${msg.player} won. You are the host: ${isHostRef.current}.`)
-                    if ((msg.player == "1" && isHostRef.current) || (msg.player == "2" && !isHostRef.current)) {
-                        setInstruction('You win!');
-                        setRevealedWord(msg.word.split('').join(' '));
-                    } else if ((msg.player == "1" && !isHostRef.current) || (msg.player == "2" && isHostRef.current)) {
-                        setOpponentInstruction("Opponent won!");
-                        setOpponentRevealed(msg.word.split('').join(' '));
-                    }
+        if (!lobbyId || !playerId) return;
 
-                } else if (msg.type === 'lost') {
-                    console.log(`Player ${msg.player} lost. You are the host: ${isHostRef.current}.`)
-                    if ((msg.player == "1" && isHostRef.current) || (msg.player == "2" && !isHostRef.current)) {
-                        setInstruction('Game Over! The word was:');
-                        setRevealedWord(msg.word.split('').join(' '));
-                    } else if ((msg.player == "1" && !isHostRef.current) || (msg.player == "2" && isHostRef.current)) {
-                        setOpponentInstruction("Game Over! The word was:");
-                        setOpponentRevealed(msg.word.split('').join(' '));
-                    }
-                } else if (msg.type === 'restart') {
-                    console.log(`Player ${msg.player} wants to play again.`)
-                    if (msg.player == "1" && !isHostRef.current) {
-                        setOpponentInstruction('Wants to play again.');
-                        setOpponentRevealed("");
-                        setP1Restarted(true);
-                    } else if (msg.player == "2" && isHostRef.current) {
-                        setOpponentInstruction('Wants to play again.');
-                        setOpponentRevealed("");
-                        setP2Restarted(true);
-                    }
-                    if (p1Restarted && p2Restarted) {
-                        setOpponentInstruction("Picking a word.");
-                    }
-                } else if (msg.type === 'close') {
-                    if (ws.current) ws.current.close();
-                    router.push('/');
-                } else if (msg.type === 'end') {
-                    setLobbyState('ended');
-                    setShowRestart(true);
+        // Only create the websocket if it doesn't already exist
+        if (ws.current) return;
+
+        const socket = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}&id=${playerId}`);
+        ws.current = socket;
+
+        socket.onopen = () => {
+            fetchLobbyState();
+        };
+        socket.onclose = () => {
+            // No need to call close again, just cleanup reference
+            ws.current = null;
+        };
+        socket.onmessage = (event: MessageEvent) => {
+            const msg = JSON.parse(event.data);
+            if (msg.type === 'start_game') {
+                setLobbyState('playing');
+                setInstruction('Type a letter to guess.');
+                setRevealedWord(msg.revealed.split('').join(' '));
+                setAttemptsLeft(6);
+                setOpponentInstruction('');
+                setOpponentRevealed(msg.opponent_revealed.split('').join(' '));
+                setOpponentAttempts(6);
+                setP1Restarted(false);
+                isP1Restarted.current = false;
+                setP2Restarted(false);
+                isP2Restarted.current = false;
+            } else if (msg.type === 'update') {
+                if (msg.revealed) {
+                    setRevealedWord(msg.revealed.split('').join(' '));
+                    setOpponentRevealed(msg.opponent_revealed.split('').join(' '));
+                    setAttemptsLeft(msg.attempts);
+                    setOpponentAttempts(msg.opponent_attempts);
                 }
-            };
-        }
+            } else if (msg.type === 'win') {
+                console.log(`Player ${msg.player} won. You are the host: ${isHostRef.current}.`)
+                if ((msg.player == "1" && isHostRef.current) || (msg.player == "2" && !isHostRef.current)) {
+                    setInstruction('You win!');
+                    setRevealedWord(msg.word.split('').join(' '));
+                } else if ((msg.player == "1" && !isHostRef.current) || (msg.player == "2" && isHostRef.current)) {
+                    setOpponentInstruction("Opponent won!");
+                    setOpponentRevealed(msg.word.split('').join(' '));
+                }
+
+            } else if (msg.type === 'lost') {
+                console.log(`Player ${msg.player} lost. You are the host: ${isHostRef.current}.`)
+                if ((msg.player == "1" && isHostRef.current) || (msg.player == "2" && !isHostRef.current)) {
+                    setInstruction('Game Over! The word was:');
+                    setRevealedWord(msg.word.split('').join(' '));
+                } else if ((msg.player == "1" && !isHostRef.current) || (msg.player == "2" && isHostRef.current)) {
+                    setOpponentInstruction("Game Over! The word was:");
+                    setOpponentRevealed(msg.word.split('').join(' '));
+                }
+            } else if (msg.type === 'restart') {
+                console.log(`Player ${msg.player} wants to play again.`)
+                if (msg.player == "1" && !isHostRef.current) {
+                    setOpponentInstruction('Wants to play again.');
+                    setOpponentRevealed("");
+                    setP1Restarted(true);
+                    isP1Restarted.current = true;
+                    if (isP1Restarted.current) {console.log("Set P1 to true");}
+                } else if (msg.player == "2" && isHostRef.current) {
+                    setOpponentInstruction('Wants to play again.');
+                    setOpponentRevealed("");
+                    setP2Restarted(true);
+                    isP2Restarted.current = true;
+                    if (isP2Restarted.current) {console.log("Set P2 to true");}
+                }
+                if (isP1Restarted.current && isP2Restarted.current) {
+                    console.log("Both restarted");
+                    setOpponentInstruction("Picking a word.");
+                }
+            } else if (msg.type === 'close') {
+                if (ws.current) ws.current.close();
+                router.push('/');
+            } else if (msg.type === 'end') {
+                setLobbyState('ended');
+                setShowRestart(true);
+            }
+        };
+
         return () => { };
         // eslint-disable-next-line
-    }, [lobbyId]);
+    }, [lobbyId, playerId]);
 
     const fetchLobbyState = async () => {
         const res = await fetch(`/api/lobby-state?lobby=${lobbyId}`, {
@@ -124,8 +143,10 @@ export default function Lobby() {
         setLobbyState('waiting');
         if (isHostRef.current) {
             setP1Restarted(true);
+            isP1Restarted.current = true;
         } else {
             setP2Restarted(true);
+            isP2Restarted.current = true;
         }
         if (ws.current) { ws.current.send(JSON.stringify({ type: 'restart', payload: playerId })); }
     };
