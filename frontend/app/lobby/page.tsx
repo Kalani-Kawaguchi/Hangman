@@ -164,7 +164,7 @@ export default function Lobby() {
         // if (lobbyState === 'waiting' || lobbyState === 'ready') {
         if (lobbyState === 'waiting') {
             if (/^[a-z]$/.test(key)) setCurrentWord((w: string) => w + key);
-            else if (e.key === 'Backspace') setCurrentWord((w: string) => w.slice(0, -1));
+            else if (e.key === 'Backspace') {setCurrentWord((w: string) => w.slice(0, -1)); e.preventDefault();}
         } else if (lobbyState === 'playing') {
             if (ws.current) { ws.current.send(JSON.stringify({ type: 'guess', payload: key })); }
         }
@@ -206,7 +206,7 @@ export default function Lobby() {
                     <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
                         <Game
                             playerName="You"
-                            revealedWord={revealedWord}
+                            revealedWord={lobbyState === 'waiting' ? currentWord : revealedWord}
                             attemptsLeft={attemptsLeft}
                             instruction={instruction}
                             isYou={true}
@@ -214,17 +214,6 @@ export default function Lobby() {
                         {/* {lobbyState === 'waiting' || lobbyState === 'ready' ? ( */}
                         {lobbyState === 'waiting' ? (
                             <div>
-                                <h3>
-                                    <span>{currentWord}</span>
-                                    <span
-                                        style={{
-                                            display: 'inline-block',
-                                            width: '1ch',
-                                            animation: 'blink 1s steps(2, start) infinite',
-                                            color: 'black',
-                                        }}
-                                    >|</span>
-                                </h3>
                                 <button onClick={handleSubmitWord}>Submit Word</button>
                             </div>
                         ) : null}
@@ -252,24 +241,13 @@ export default function Lobby() {
                     <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
                         <Game
                             playerName="You"
-                            revealedWord={revealedWord}
+                            revealedWord={lobbyState === 'waiting' ? currentWord : revealedWord}
                             attemptsLeft={attemptsLeft}
                             instruction={instruction}
                             isYou={true}
                         />
                         {lobbyState === 'waiting' ? (
                             <div>
-                                <h3>
-                                    <span>{currentWord}</span>
-                                    <span
-                                        style={{
-                                            display: 'inline-block',
-                                            width: '1ch',
-                                            animation: 'blink 1s steps(2, start) infinite',
-                                            color: 'black',
-                                        }}
-                                    >|</span>
-                                </h3>
                                 <button onClick={handleSubmitWord}>Submit Word</button>
                             </div>
                         ) : null}
