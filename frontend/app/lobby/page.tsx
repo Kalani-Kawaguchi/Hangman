@@ -30,7 +30,6 @@ export default function Lobby() {
     const opponentExistsRef = useRef(false);
     const [opponentExists, setOpponentExists] = useState(false);
 
-
     useEffect(() => {
         if (!lobbyId || !playerId) return;
 
@@ -38,11 +37,13 @@ export default function Lobby() {
         if (ws.current) return;
 
         const socket = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}&id=${playerId}`);
-        ws.current = socket;
+        ws.current = socket;     
+
+        console.log("refreshed");
 
         socket.onopen = () => {
             fetchLobbyState();
-        };
+        }
         socket.onclose = () => {
             // No need to call close again, just cleanup reference
             ws.current = null;
@@ -144,18 +145,6 @@ export default function Lobby() {
         // eslint-disable-next-line
     }, [lobbyId, playerId]);
 
-    const fetchLobbyState = async () => {
-        const res = await fetch(`/api/lobby-state?lobby=${lobbyId}`, {
-            method: 'GET',
-            credentials: 'include',
-        });
-        if (res.ok) {
-            const data = await res.json();
-            setLobbyState(data.state);
-            if (data.state === 'playing') setInstruction('Type a letter to guess.');
-        }
-    };
-
     const handleLeave = async () => {
         await fetch('/api/leave-lobby', {
             method: 'POST',
@@ -216,6 +205,9 @@ export default function Lobby() {
                         opponentExistsRef.current = true; // If you're player 2, your opponent should always exist.
                         console.log(`isHost: ${isHost}`)
                     }
+                    if (isHostRef.current) {
+                        console.log(`isHost: ${isHost}`)
+                    }
                 }
             } catch (error) {
                 console.error("Failed to fetch role:", error);
@@ -224,6 +216,48 @@ export default function Lobby() {
 
         fetchRole();
     }, [playerId, lobbyId, isHost]);
+
+    useEffect(() => {
+        fetchLobbyInformation();
+    },[])
+
+    const fetchLobbyInformation = async () => {
+        const res = await fetch(`/api/lobby-state?lobby=${lobbyId}`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.player1Restarted === true) {
+                setP1Restarted(true);
+                isP1Restarted.current = true;
+            }
+            if (data.player2Restarted === true) {
+                setP2Restarted(true);
+                isP2Restarted.current = true;
+            }
+            if ((isHostRef.current && typeof data.player2ID === 'string' && data.player2ID.trim() !== '') ||
+                (!isHostRef.current && typeof data.player1ID === 'string' && data.player1ID.trim() !== '')) {
+                setOpponentExists(true);
+                opponentExistsRef.current = true;
+                console.log(`Player 2: ${data.player2ID}`)
+                console.log(`${isHostRef.current}`)
+            }
+        }
+    }
+
+    const fetchLobbyState = async () => {
+        console.log("we in  here")
+        const res = await fetch(`/api/lobby-state?lobby=${lobbyId}`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+        if (res.ok) {
+            const data = await res.json();
+            setLobbyState(data.state);
+            if (data.state === 'playing') setInstruction('Type a letter to guess.');
+        }
+    };
 
     useEffect(() => {
         window.addEventListener('keydown', handleKeyDown);

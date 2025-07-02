@@ -78,7 +78,13 @@ func HandleLobbyState(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	lobbyState := lobby.State
-	json.NewEncoder(w).Encode(map[string]string{"state": string(lobbyState)})
+	json.NewEncoder(w).Encode(map[string]any{
+		"state":            string(lobbyState),
+		"player1Restarted": lobby.Player1Restarted,
+		"player2Restarted": lobby.Player2Restarted,
+		"player1ID":        lobby.Player1ID,
+		"player2ID":        lobby.Player2ID,
+	})
 }
 
 func getLobbyFromCookies(r *http.Request) (*session.Lobby, string, string, error) {

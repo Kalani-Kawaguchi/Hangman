@@ -21,20 +21,22 @@ const (
 )
 
 type Lobby struct {
-	ID         string `json:"id"`
-	Name       string `json:"name"`
-	Player1    string `json:"player1"`
-	Player2    string `json:"player2,omitempty"`
-	Player1ID  string
-	Player2ID  string
-	State      LobbyState `json:"state"`
-	Created    time.Time  `json:"created"`
-	Game1      game.Game
-	Game2      game.Game
-	Game1Ready bool
-	Game2Ready bool
-	Clients    map[*websocket.Conn]string // active WebSocket clients. Client: PlayerID
-	ConnLock   sync.Mutex                 // protects Clients map
+	ID               string `json:"id"`
+	Name             string `json:"name"`
+	Player1          string `json:"player1"`
+	Player2          string `json:"player2,omitempty"`
+	Player1ID        string
+	Player2ID        string
+	State            LobbyState `json:"state"`
+	Created          time.Time  `json:"created"`
+	Game1            game.Game
+	Game2            game.Game
+	Game1Ready       bool
+	Game2Ready       bool
+	Clients          map[*websocket.Conn]string // active WebSocket clients. Client: PlayerID
+	ConnLock         sync.Mutex                 // protects Clients map
+	Player1Restarted bool
+	Player2Restarted bool
 }
 
 // Might move this somewhere else

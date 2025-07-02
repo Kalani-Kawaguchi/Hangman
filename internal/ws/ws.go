@@ -120,8 +120,10 @@ func handleRestart(lobbyID string, payload interface{}) {
 	}
 	lobby := wsHub.Lobbies[lobbyID]
 	if playerID == lobby.Player1ID {
+		lobby.Player1Restarted = true
 		BroadcastToLobby(lobbyID, "p1Restart")
 	} else if playerID == lobby.Player2ID {
+		lobby.Player2Restarted = true
 		BroadcastToLobby(lobbyID, "p2Restart")
 	}
 	lobby.State = session.StateWaiting
@@ -215,6 +217,8 @@ func handleSubmit(conn *websocket.Conn, lobbyID string, playerID string, payload
 
 	if lobby.Game1Ready && lobby.Game2Ready {
 		lobby.State = session.StateReady
+		lobby.Player1Restarted = false
+		lobby.Player2Restarted = false
 		BroadcastToLobby(lobbyID, "update")
 		BroadcastToLobby(lobbyID, "start_game")
 	}
