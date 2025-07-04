@@ -3,10 +3,12 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link'
 import Image from 'next/image'
+import LobbyBox from '../../components/LobbyBox';
 
 type Lobby = {
     id: string;
     name: string;
+    playerCount: number;
 };
 
 export default function JoinLobby() {
@@ -61,10 +63,14 @@ export default function JoinLobby() {
             <ul>
                 {Array.isArray(lobbies) && lobbies.length > 0 ? (
                     lobbies.map(lobby => (
-                        <li key={lobby.id}>
-                            <button type="button" onClick={() => joinLobby(lobby.id)}>
-                                Lobby: {lobby.name}
-                            </button>
+                        <li key={lobby.id} style={{ marginBottom: '20px' }}>
+                            <LobbyBox
+                                name={lobby.name}
+                                id={lobby.id}
+                                playerCount={lobby.playerCount}
+                                maxPlayers={2}
+                                onClick={joinLobby}
+                            />
                         </li>
                     ))
                 ) : (
@@ -77,6 +83,6 @@ export default function JoinLobby() {
                 placeholder="Enter your name"
             /><br />
             <Link href="/">Go Back</Link>
-        </main>
+        </main >
     );
 }

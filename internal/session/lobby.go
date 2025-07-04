@@ -37,6 +37,7 @@ type Lobby struct {
 	ConnLock         sync.Mutex                 // protects Clients map
 	Player1Restarted bool
 	Player2Restarted bool
+	PlayerCount      string
 }
 
 // Might move this somewhere else
@@ -45,11 +46,12 @@ type WordRequest struct {
 }
 
 type LobbySummary struct {
-	ID      string     `json:"id"`
-	Name    string     `json:"name"`
-	State   LobbyState `json:"state"`
-	Player1 string     `json:"player1"`
-	Player2 string     `json:"player2"`
+	ID          string     `json:"id"`
+	Name        string     `json:"name"`
+	State       LobbyState `json:"state"`
+	Player1     string     `json:"player1"`
+	Player2     string     `json:"player2"`
+	PlayerCount string     `json:"playerCount"`
 }
 
 // Thread-safe map to store active lobbies
@@ -65,13 +67,14 @@ func CreateLobby(name string) *Lobby {
 
 	id := GenerateID()
 	lobby := &Lobby{
-		ID:         id,
-		Name:       name,
-		State:      StateWaiting,
-		Created:    time.Now(),
-		Game1Ready: false,
-		Game2Ready: false,
-		Clients:    make(map[*websocket.Conn]string),
+		ID:          id,
+		Name:        name,
+		State:       StateWaiting,
+		Created:     time.Now(),
+		Game1Ready:  false,
+		Game2Ready:  false,
+		Clients:     make(map[*websocket.Conn]string),
+		PlayerCount: "1",
 	}
 
 	lobbies[id] = lobby
@@ -97,6 +100,7 @@ func JoinLobby(lobbyID, playerName string, playerID string) (*Lobby, error) {
 	} else if lobby.Player2 == "" {
 		lobby.Player2 = playerName
 		lobby.Player2ID = playerID
+		lobby.PlayerCount = "2"
 	} else {
 		return nil, errors.New("lobby already full")
 	}
@@ -123,7 +127,7 @@ func GetLobbyList() []LobbySummary {
 
 	var availableLobbies []LobbySummary
 	for id, lobby := range lobbies {
-		availableLobbies = append(availableLobbies, LobbySummary{ID: id, Name: lobby.Name, State: lobby.State, Player1: lobby.Player1, Player2: lobby.Player2})
+		availableLobbies = append(availableLobbies, LobbySummary{ID: id, Name: lobby.Name, State: lobby.State, Player1: lobby.Player1, Player2: lobby.Player2, PlayerCount: lobby.PlayerCount})
 	}
 	return availableLobbies
 }
