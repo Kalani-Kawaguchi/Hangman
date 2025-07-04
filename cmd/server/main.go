@@ -298,12 +298,14 @@ func handleLeaveLobby(w http.ResponseWriter, r *http.Request) {
 
 	// Check which player is trying to leave
 	if playerID == lobby.Player1ID {
+		lobby.PlayerCount = "0"
 		ws.BroadcastToLobby(lobby_id, "closeAll")
 		return
 
 	} else if playerID == lobby.Player2ID {
 		// just have player2 leave the lobby
 		lobby.Player2 = ""
+		lobby.PlayerCount = "1"
 
 		// update player2 lobby cookie and lobby player2 info
 		http.SetCookie(w, &http.Cookie{
