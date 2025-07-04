@@ -38,35 +38,35 @@ export default function CreateLobby() {
 
     return (
         <main>
-            <div style={{ minHeight: '25vh', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <Image src="/hangman.gif" alt="Hangman" width={0} height={0} style={{ height: '25vh', width: 'auto' }} />
+            <div style={{ height: '25vh', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <Image src="/hangman.gif" alt="Hangman" width={0} height={0} style={{ height: 'auto', width: '75vh' }} />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', justifyContent: 'center', minHeight: '50vh' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '40vh'}}>
                 <form 
                     onSubmit={handleSubmit}
-                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}
+                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '30vh'}}
                 >
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <label htmlFor="lobbyName"><Image src="/lobbyName.gif" alt="Lobby Name" width={0} height={0} style={{ height: 'auto', width: '10vw'}}/></label>
+                    <div style={{ display: 'flex', alignItems: 'center', height: '10vh'}}>
+                        <label htmlFor="lobbyName" style={{height: '100%'}}><Image src="/lobbyName.gif" alt="Lobby Name" width={0} height={0} style={{ height: '100%', width: 'auto' }}/></label>
                         <input
                             id="lobbyName"
                             value={lobbyName}
                             onChange={e => setLobbyName(e.target.value)}
                         />
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <label htmlFor="playerName"><Image src="/playerName.gif" alt="Lobby Name" width={0} height={0} style={{ height: 'auto', width: '10vw'}}/></label>
+                    <div style={{ display: 'flex', alignItems: 'center', height: '10vh'}}>
+                        <label htmlFor="playerName" style={{height: '100%'}}><Image src="/playerName.gif" alt="Lobby Name" width={0} height={0} style={{ height: '100%', width: 'auto'}}/></label>
                         <input
                             id="playerName"
                             value={playerName}
                             onChange={e => setPlayerName(e.target.value)}
                         />
                     </div>
-                    <button type="submit">
-                        <Image src="/createLobby.gif" alt="Create Lobby" width={0} height={0} style={{ height: 'auto', width: '10vw'}}/>
+                    <button type="submit" style={{height: '10vh'}}>
+                        <Image src="/createLobby.gif" alt="Create Lobby" width={0} height={0} style={{ height: '90%', width: 'auto'}}/>
                     </button>
                 </form>
-                <Link href="/"><Image src="/goBack.gif" alt="Go Back" width={0} height={0} style={{ height: 'auto', width: '10vw'}}/></Link>
+                <Link href="/" style={{height: "10vh"}}><Image src="/goBack.gif" alt="Go Back" width={0} height={0} style={{ height: '100%', width: 'auto'}}/></Link>
             </div>
         </main>
     );
