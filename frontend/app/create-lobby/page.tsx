@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function CreateLobby() {
     const [lobbyName, setLobbyName] = useState('');
@@ -37,14 +38,36 @@ export default function CreateLobby() {
 
     return (
         <main>
-            <form onSubmit={handleSubmit}>
-                <label>Lobby Name: </label>
-                <input value={lobbyName} onChange={e => setLobbyName(e.target.value)} /><br />
-                <label>Player Name: </label>
-                <input value={playerName} onChange={e => setPlayerName(e.target.value)} /><br />
-                <input type="submit" value="Create Lobby" />
-            </form>
-            <Link href="/">Go Back</Link>
+            <div style={{ minHeight: '25vh', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <Image src="/hangman.gif" alt="Hangman" width={0} height={0} style={{ height: '25vh', width: 'auto' }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', justifyContent: 'center', minHeight: '50vh' }}>
+                <form 
+                    onSubmit={handleSubmit}
+                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <label htmlFor="lobbyName"><Image src="/lobbyName.gif" alt="Lobby Name" width={0} height={0} style={{ height: 'auto', width: '10vw'}}/></label>
+                        <input
+                            id="lobbyName"
+                            value={lobbyName}
+                            onChange={e => setLobbyName(e.target.value)}
+                        />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <label htmlFor="playerName"><Image src="/playerName.gif" alt="Lobby Name" width={0} height={0} style={{ height: 'auto', width: '10vw'}}/></label>
+                        <input
+                            id="playerName"
+                            value={playerName}
+                            onChange={e => setPlayerName(e.target.value)}
+                        />
+                    </div>
+                    <button type="submit">
+                        <Image src="/createLobby.gif" alt="Create Lobby" width={0} height={0} style={{ height: 'auto', width: '10vw'}}/>
+                    </button>
+                </form>
+                <Link href="/"><Image src="/goBack.gif" alt="Go Back" width={0} height={0} style={{ height: 'auto', width: '10vw'}}/></Link>
+            </div>
         </main>
     );
 }
