@@ -67,7 +67,7 @@ export default function JoinLobby() {
                 <Image src="/lobbies.gif" alt="Lobbies" width={0} height={0} style={{ height: '100%', width: 'auto' }} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '40vh' }}>
-                <div style={{ height: '30vh' }}>
+                <div style={{ height: '30vh', width: '100%'}}>
                     <ul>
                         {Array.isArray(lobbies) && lobbies.length > 0 ? (
                             lobbies.map(lobby => (
