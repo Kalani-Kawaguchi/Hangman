@@ -48,7 +48,8 @@ const LobbyBox = ({ name, id, playerCount, maxPlayers, onClick }) => {
                 ))}
             </div>
             <div className="player-count" style={{width: '25%', height: '50%'}}>
-                {playerCount}/{maxPlayers}
+                {parseInt(playerCount, 10) === 1 ? <img src="/1outOf2.gif"/> : 
+                    parseInt(playerCount, 10) === 2 ? <img src="/2outOf2.gif"/> : null}
             </div>
         </button>
     )
