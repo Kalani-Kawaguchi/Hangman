@@ -12,6 +12,8 @@ export default function Lobby() {
     const [p1Restarted, setP1Restarted] = useState(false);
     const isP2Restarted = useRef(false);
     const [p2Restarted, setP2Restarted] = useState(false);
+    const [playerName, setPlayerName] = useState('');
+    const [opponentName, setOpponentName] = useState('');
     // Variables for player1 game
     const [revealedWord, setRevealedWord] = useState('');
     const [attemptsLeft, setAttemptsLeft] = useState("6");
@@ -95,6 +97,7 @@ export default function Lobby() {
                 if (isHostRef.current) {
                     setOpponentExists(true)
                     opponentExistsRef.current = true;
+                    setOpponentName(msg.message)
                 }
                 console.log(`opp exists: ${opponentExistsRef.current}`);
 
@@ -209,11 +212,13 @@ export default function Lobby() {
                 });
                 if (res.ok) {
                     const data = await res.json();
+                    setPlayerName(data.name)
                     setIsHost(data.role === 'host');
                     isHostRef.current = data.role === 'host';
                     if (!isHostRef.current) {
                         setOpponentExists(true);
                         opponentExistsRef.current = true; // If you're player 2, your opponent should always exist.
+                        setOpponentName(data.opponent);
                         console.log(`isHost: ${isHost}`)
                     }
                 }
@@ -237,7 +242,7 @@ export default function Lobby() {
                 <>
                     <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
                         <Game
-                            playerName="You"
+                            playerName={playerName}
                             revealedWord={lobbyState === 'waiting' ? currentWord : revealedWord}
                             attemptsLeft={attemptsLeft}
                             instruction={instruction}
@@ -245,18 +250,18 @@ export default function Lobby() {
                         />
                         {lobbyState === 'waiting' ? (
                             <div>
-                                <button onClick={handleSubmitWord}>Submit Word</button>
+                                <button onClick={handleSubmitWord}><img src="/submitWord.gif"/></button>
                             </div>
                         ) : null}
                         {showRestart && <button onClick={handleRestart}>Play Again</button>}
                         <br />
-                        <button onClick={handleLeave}>Leave Lobby</button>
+                        <button onClick={handleLeave}><img src="/leaveLobby.gif"/></button>
                     </div>
                     <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
                         {opponentExists ? (
 
                             <Game
-                                playerName="Opponent"
+                                playerName={opponentName}
                                 revealedWord={isP2Restarted.current ? "" : opponentRevealed}
                                 attemptsLeft={isP2Restarted.current ? "" : opponentAttempts}
                                 instruction={opponentInstruction}
@@ -273,7 +278,7 @@ export default function Lobby() {
             ) : (
                 <>
                     <Game
-                        playerName="Opponent"
+                        playerName={opponentName}
                         revealedWord={isP1Restarted.current ? "" : opponentRevealed}
                         attemptsLeft={isP1Restarted.current ? "" : opponentAttempts}
                         instruction={opponentInstruction}
@@ -281,7 +286,7 @@ export default function Lobby() {
                     />
                     <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
                         <Game
-                            playerName="You"
+                            playerName={playerName}
                             revealedWord={lobbyState === 'waiting' ? currentWord : revealedWord}
                             attemptsLeft={attemptsLeft}
                             instruction={instruction}
@@ -289,12 +294,12 @@ export default function Lobby() {
                         />
                         {lobbyState === 'waiting' ? (
                             <div>
-                                <button onClick={handleSubmitWord}>Submit Word</button>
+                                <button onClick={handleSubmitWord}><img src="/submitWord.gif"/></button>
                             </div>
                         ) : null}
                         {showRestart && <button onClick={handleRestart}>Play Again</button>}
                         <br />
-                        <button onClick={handleLeave}>Leave Lobby</button>
+                        <button onClick={handleLeave}><img src="/leaveLobby.gif"/></button>
                     </div>
                 </>
             )}

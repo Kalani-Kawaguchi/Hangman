@@ -359,9 +359,17 @@ func handlePlayerRole(w http.ResponseWriter, r *http.Request) {
 	}
 
 	role := "guest"
+	name := lobby.Player2
+	opponent := lobby.Player1
 	if playerID == lobby.Player1ID {
 		role = "host"
+		name = lobby.Player1
+		opponent = lobby.Player2
 	}
 
-	json.NewEncoder(w).Encode(map[string]string{"role": role})
+	json.NewEncoder(w).Encode(map[string]string{
+		"role":     role,
+		"name":     name,
+		"opponent": opponent,
+	})
 }

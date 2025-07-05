@@ -291,7 +291,7 @@ func BroadcastToLobby(lobbyID string, t string) {
 				conn.WriteJSON(start_message)
 			}
 		case "join":
-			join_message := map[string]string{"type": "join", "message": "join"}
+			join_message := map[string]string{"type": "join", "message": lobby.Player2}
 			conn.WriteJSON(join_message)
 		case "p1Submit":
 			submit_message := map[string]string{"type": "submit", "player": "1"}
