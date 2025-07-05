@@ -20,6 +20,10 @@ export default function CreateLobby() {
     }
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        if (!playerName.trim()) {
+            alert('Please enter your name before creating a lobby!');
+            return;
+        }
         e.preventDefault();
         const body: CreateLobbyRequest = { lobby_name: lobbyName, host_name: playerName };
         const res: Response = await fetch('/api/create-lobby', {
