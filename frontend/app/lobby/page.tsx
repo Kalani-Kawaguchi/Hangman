@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/image'
 import Game from '../../components/Game';
 
 export default function Lobby() {
@@ -237,79 +238,113 @@ export default function Lobby() {
     }, [lobbyState, currentWord]);
 
     return (
-        <main style={{ display: 'flex', flexDirection: 'row' }}>
-            {isHost ? (
-                <>
-                    <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
-                        <Game
-                            playerName={playerName}
-                            revealedWord={lobbyState === 'waiting' ? currentWord : revealedWord}
-                            attemptsLeft={attemptsLeft}
-                            instruction={instruction}
-                            isYou={true}
-                        />
-                        {lobbyState === 'waiting' ? (
-                            <div>
-                                <button onClick={handleSubmitWord}><img src="/submitWord.gif"/></button>
-                            </div>
-                        ) : null}
-                        {showRestart && <button onClick={handleRestart}>Play Again</button>}
-                        <br />
-                        <button onClick={handleLeave}><img src="/leaveLobby.gif"/></button>
-                    </div>
-                    <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
-                        {opponentExists ? (
+        <main>
+            <div style={{ height: '25vh', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <Image src="/hangman.gif" alt="Hangman" width={0} height={0} style={{ height: 'auto', width: '75vh' }} />
+            </div>
 
+
+            <div style={{ display: 'flex', flexDirection: 'row' }}>
+                {isHost ? (
+                    <>
+                        <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
+                            <Image
+                                src={`/Platform${attemptsLeft}.gif`}
+                                width={500}
+                                height={500}
+                                alt="Hangman picture"
+                            />
+                            <Game
+                                playerName={playerName}
+                                revealedWord={lobbyState === 'waiting' ? currentWord : revealedWord}
+                                attemptsLeft={attemptsLeft}
+                                instruction={instruction}
+                                isYou={true}
+                            />
+                            {lobbyState === 'waiting' ? (
+                                <div>
+                                    <button onClick={handleSubmitWord}><img src="/submitWord.gif" /></button>
+                                </div>
+                            ) : null}
+                            {showRestart && <button onClick={handleRestart}>Play Again</button>}
+                            <br />
+                        </div>
+                        <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
+                            <Image
+                                src={`/Platform${opponentAttempts}.gif`}
+                                width={500}
+                                height={500}
+                                alt="Hangman picture"
+                            />
+                            {opponentExists ? (
+                                <Game
+                                    playerName={opponentName}
+                                    revealedWord={isP2Restarted.current ? "" : opponentRevealed}
+                                    attemptsLeft={isP2Restarted.current ? "" : opponentAttempts}
+                                    instruction={opponentInstruction}
+                                    isYou={false}
+                                />
+
+                            ) : (
+                                <div>
+                                    <h2>Waiting for an opponent to join</h2>
+                                </div>
+                            )}
+                        </div>
+                    </>
+                ) : (
+                    <>
+
+                        <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
+                            <Image
+                                src={`/Platform${attemptsLeft}.gif`}
+                                width={500}
+                                height={500}
+                                alt="Hangman picture"
+                            />
                             <Game
                                 playerName={opponentName}
-                                revealedWord={isP2Restarted.current ? "" : opponentRevealed}
-                                attemptsLeft={isP2Restarted.current ? "" : opponentAttempts}
+                                revealedWord={isP1Restarted.current ? "" : opponentRevealed}
+                                attemptsLeft={isP1Restarted.current ? "" : opponentAttempts}
                                 instruction={opponentInstruction}
                                 isYou={false}
                             />
-
-                        ) : (
-                            <div>
-                                <h2>Waiting for an opponent to join</h2>
-                            </div>
-                        )}
-                    </div>
-                </>
-            ) : (
-                <>
-                    <Game
-                        playerName={opponentName}
-                        revealedWord={isP1Restarted.current ? "" : opponentRevealed}
-                        attemptsLeft={isP1Restarted.current ? "" : opponentAttempts}
-                        instruction={opponentInstruction}
-                        isYou={false}
-                    />
-                    <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
-                        <Game
-                            playerName={playerName}
-                            revealedWord={lobbyState === 'waiting' ? currentWord : revealedWord}
-                            attemptsLeft={attemptsLeft}
-                            instruction={instruction}
-                            isYou={true}
-                        />
-                        {lobbyState === 'waiting' ? (
-                            <div>
-                                <button onClick={handleSubmitWord}><img src="/submitWord.gif"/></button>
-                            </div>
-                        ) : null}
-                        {showRestart && <button onClick={handleRestart}>Play Again</button>}
-                        <br />
-                        <button onClick={handleLeave}><img src="/leaveLobby.gif"/></button>
-                    </div>
-                </>
-            )}
-            <style>{`
+                        </div>
+                        <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
+                            <Image
+                                src={`/Platform${opponentAttempts}.gif`}
+                                width={500}
+                                height={500}
+                                alt="Hangman picture"
+                            />
+                            <Game
+                                playerName={playerName}
+                                revealedWord={lobbyState === 'waiting' ? currentWord : revealedWord}
+                                attemptsLeft={attemptsLeft}
+                                instruction={instruction}
+                                isYou={true}
+                            />
+                            {lobbyState === 'waiting' ? (
+                                <div>
+                                    <button onClick={handleSubmitWord}><img src="/submitWord.gif" /></button>
+                                </div>
+                            ) : null}
+                            {showRestart && <button onClick={handleRestart}>Play Again</button>}
+                            <br />
+                        </div>
+                    </>
+                )}
+                <style>{`
                 @keyframes blink {
                   0%, 100% { opacity: 1; }
                   50% { opacity: 0; }
                 }
           `}</style>
 
+            </div>
+            <div className="mt-5 w-[20%]" >
+                <button onClick={handleLeave}><img src="/leaveLobby.gif" /></button>
+            </div>
         </main >
     )
 }
