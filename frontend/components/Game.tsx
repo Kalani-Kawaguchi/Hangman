@@ -10,11 +10,16 @@ type GameProps = {
 
 const getInstructionGif = (instruction: string): string | null => {
     const map: Record<string, string> = {
-        'You win!': '/YouWin.gif',
-        'You lost! The word was:': '/YouLose.gif',
+        'Picking a word.': '/PickingWord.gif',
+        'Ready. Waiting for you...': '/Ready.gif',
+        'You win!': '/Winner.gif',
+        'Opponent won!': '/Winner.gif',
         'Game Over! The word was:': '/GameOver.gif',
-        // 'Waiting for the other player to submit their word...': '/waiting.gif',
-        // 'Enter a word for your opponent to guess:': '/typeword.gif',
+        'Type a letter to guess.': '/GuessLetter.gif',
+        'Enter a word for your opponent to guess:': '/EnterWord.gif',
+        'Waiting for the other player to submit their word...': '/Waiting.gif',
+        'Wants to play again.': '/WantsToPlayAgain.gif',
+        '': '/Guessing.gif',
     };
     return map[instruction] ?? null;
 };

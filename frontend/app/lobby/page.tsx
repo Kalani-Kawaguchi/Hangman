@@ -282,8 +282,8 @@ export default function Lobby() {
                                 />
 
                             ) : (
-                                <div>
-                                    <h2>Waiting for an opponent to join</h2>
+                                <div className="flex justify-center items-center h-full w-full">
+                                    <Image src="/WaitingForOpponent.gif" alt="Waiting for an opponent" width={500} height={500} />
                                 </div>
                             )}
                         </div>
