@@ -248,12 +248,6 @@ export default function Lobby() {
                 {isHost ? (
                     <>
                         <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
-                            <Image
-                                src={`/Platform${attemptsLeft}.gif`}
-                                width={500}
-                                height={500}
-                                alt="Hangman picture"
-                            />
                             <Game
                                 playerName={playerName}
                                 revealedWord={lobbyState === 'waiting' ? currentWord : revealedWord}
@@ -262,25 +256,27 @@ export default function Lobby() {
                                 isYou={true}
                             />
                             {lobbyState === 'waiting' ? (
-                                <div>
-                                    <button onClick={handleSubmitWord}><img src="/submitWord.gif" /></button>
+                                <div className="flex justify-center-safe w-full">
+                                    <button className="flex justify-center" onClick={handleSubmitWord}>
+                                        <img className="w-[40%]" src="/submitWord.gif" />
+                                    </button>
                                 </div>
                             ) : null}
-                            {showRestart && <button onClick={handleRestart}>Play Again</button>}
+                            {showRestart && (
+                                <div className="flex justify-center-safe w-full">
+                                    <button className="flex justify-center" onClick={handleRestart}>
+                                        <Image className="w-[40%]" src="/PlayAgain.gif" alt="Play again button" width={0} height={0} />
+                                    </button>
+                                </div>
+                            )}
                             <br />
                         </div>
                         <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
-                            <Image
-                                src={`/Platform${opponentAttempts}.gif`}
-                                width={500}
-                                height={500}
-                                alt="Hangman picture"
-                            />
                             {opponentExists ? (
                                 <Game
                                     playerName={opponentName}
                                     revealedWord={isP2Restarted.current ? "" : opponentRevealed}
-                                    attemptsLeft={isP2Restarted.current ? "" : opponentAttempts}
+                                    attemptsLeft={opponentAttempts}
                                     instruction={opponentInstruction}
                                     isYou={false}
                                 />
@@ -296,27 +292,15 @@ export default function Lobby() {
                     <>
 
                         <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
-                            <Image
-                                src={`/Platform${attemptsLeft}.gif`}
-                                width={500}
-                                height={500}
-                                alt="Hangman picture"
-                            />
                             <Game
                                 playerName={opponentName}
                                 revealedWord={isP1Restarted.current ? "" : opponentRevealed}
-                                attemptsLeft={isP1Restarted.current ? "" : opponentAttempts}
+                                attemptsLeft={opponentAttempts}
                                 instruction={opponentInstruction}
                                 isYou={false}
                             />
                         </div>
                         <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
-                            <Image
-                                src={`/Platform${opponentAttempts}.gif`}
-                                width={500}
-                                height={500}
-                                alt="Hangman picture"
-                            />
                             <Game
                                 playerName={playerName}
                                 revealedWord={lobbyState === 'waiting' ? currentWord : revealedWord}
@@ -325,11 +309,19 @@ export default function Lobby() {
                                 isYou={true}
                             />
                             {lobbyState === 'waiting' ? (
-                                <div>
-                                    <button onClick={handleSubmitWord}><img src="/submitWord.gif" /></button>
+                                <div className="flex justify-center w-full">
+                                    <button className="flex justify-center" onClick={handleSubmitWord}>
+                                        <img className="w-[40%]" src="/submitWord.gif" />
+                                    </button>
                                 </div>
                             ) : null}
-                            {showRestart && <button onClick={handleRestart}>Play Again</button>}
+                            {showRestart && (
+                                <div className="flex justify-center-safe">
+                                    <button className="flex justify-center" onClick={handleRestart}>
+                                        <Image className="w-[40%]" src="/PlayAgain.gif" alt="Play again button" width={0} height={0} />
+                                    </button>
+                                </div>
+                            )}
                             <br />
                         </div>
                     </>
