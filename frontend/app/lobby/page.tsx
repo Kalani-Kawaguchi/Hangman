@@ -4,6 +4,19 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image'
 import Game from '../../components/Game';
 
+function useIsMobile(breakpoint = 768) {
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const update = () => setIsMobile(window.innerWidth < breakpoint);
+        update(); // initial check
+        window.addEventListener('resize', update);
+        return () => window.removeEventListener('resize', update);
+    }, [breakpoint]);
+
+    return isMobile;
+}
+
 export default function Lobby() {
     const [currentWord, setCurrentWord] = useState('');
     const [lobbyState, setLobbyState] = useState('waiting');
@@ -32,7 +45,12 @@ export default function Lobby() {
     const playerId = params.get('playerID')
     const opponentExistsRef = useRef(false);
     const [opponentExists, setOpponentExists] = useState(false);
+    const isMobile = useIsMobile();
 
+    // check to see when instruction is updated
+    useEffect(() => {
+        console.log("Instruction updated:", instruction);
+    }, [instruction]);
 
     useEffect(() => {
         if (!lobbyId || !playerId) return;
@@ -55,10 +73,10 @@ export default function Lobby() {
             if (msg.type === 'start_game') {
                 setLobbyState('playing');
                 setInstruction('Type a letter to guess.');
-                setRevealedWord(msg.revealed.split('').join(' '));
+                setRevealedWord(msg.revealed);
                 setAttemptsLeft("6");
                 setOpponentInstruction('');
-                setOpponentRevealed(msg.opponent_revealed.split('').join(' '));
+                setOpponentRevealed(msg.opponent_revealed);
                 setOpponentAttempts("6");
                 setP1Restarted(false);
                 isP1Restarted.current = false;
@@ -67,8 +85,8 @@ export default function Lobby() {
 
             } else if (msg.type === 'update') {
                 if (msg.revealed) {
-                    setRevealedWord(msg.revealed.split('').join(' '));
-                    setOpponentRevealed(msg.opponent_revealed.split('').join(' '));
+                    setRevealedWord(msg.revealed);
+                    setOpponentRevealed(msg.opponent_revealed);
                     setAttemptsLeft(String(msg.attempts));
                     setOpponentAttempts(String(msg.opponent_attempts));
                 }
@@ -77,7 +95,7 @@ export default function Lobby() {
                 console.log(`Player ${msg.player} won. You are the host: ${isHostRef.current}.`)
                 if ((msg.player == "1" && isHostRef.current) || (msg.player == "2" && !isHostRef.current)) {
                     setInstruction('You win!');
-                    setRevealedWord(msg.word.split('').join(' '));
+                    setRevealedWord(msg.word);
                 } else if ((msg.player == "1" && !isHostRef.current) || (msg.player == "2" && isHostRef.current)) {
                     setOpponentInstruction("Opponent won!");
                     setOpponentRevealed(msg.word.split('').join(' '));
@@ -87,10 +105,10 @@ export default function Lobby() {
                 console.log(`Player ${msg.player} lost. You are the host: ${isHostRef.current}.`)
                 if ((msg.player == "1" && isHostRef.current) || (msg.player == "2" && !isHostRef.current)) {
                     setInstruction('Game Over! The word was:');
-                    setRevealedWord(msg.word.split('').join(' '));
+                    setRevealedWord(msg.word);
                 } else if ((msg.player == "1" && !isHostRef.current) || (msg.player == "2" && isHostRef.current)) {
                     setOpponentInstruction("Game Over! The word was:");
-                    setOpponentRevealed(msg.word.split('').join(' '));
+                    setOpponentRevealed(msg.word);
                 }
 
             } else if (msg.type === 'join') {
@@ -103,8 +121,9 @@ export default function Lobby() {
                 console.log(`opp exists: ${opponentExistsRef.current}`);
 
             } else if (msg.type === 'submit') {
-                if ((isHostRef.current && msg.player === '2') || (!isHostRef.current && msg.player === '1'))
+                if ((isHostRef.current && msg.player === '2') || (!isHostRef.current && msg.player === '1')) {
                     setOpponentInstruction("Ready. Waiting for you...");
+                }
 
             } else if (msg.type === 'restart') {
                 console.log(`Player ${msg.player} wants to play again.`)
@@ -169,6 +188,7 @@ export default function Lobby() {
 
     const handleRestart = () => {
         setShowRestart(false);
+        console.log("restarted");
         setInstruction('Enter a word for your opponent to guess:');
         setRevealedWord('')
         setLobbyState('waiting');
@@ -185,7 +205,8 @@ export default function Lobby() {
     const handleSubmitWord = () => {
         if (!currentWord) return alert('Enter a word first.');
         if (ws.current) { ws.current.send(JSON.stringify({ type: 'submit', payload: currentWord })); }
-        setInstruction('Waiting for the other player to submit their word...');
+        setInstruction('waiting for opponent word');
+        console.log("submit word");
         // send a msg to backend telling other client to update opponents instruction to "They have submit their word"
         // if (ws.current) { ws.current.send(JSON.stringify({ type: 'submit', payload: "" })); }
         setCurrentWord('');
@@ -237,16 +258,20 @@ export default function Lobby() {
         // eslint-disable-next-line
     }, [lobbyState, currentWord]);
 
+
+
     return (
-        <main>
+        < main >
+            {/* Banner */}
             <div style={{ height: '25vh', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <Image src="/hangman.gif" alt="Hangman" width={0} height={0} style={{ height: 'auto', width: '75vh' }} />
             </div>
 
-
+            {/* Game Section */}
             <div style={{ display: 'flex', flexDirection: 'row' }}>
                 {isHost ? (
                     <>
+                        {/* Always show your game */}
                         <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
                             <Game
                                 playerName={playerName}
@@ -271,35 +296,44 @@ export default function Lobby() {
                             )}
                             <br />
                         </div>
-                        <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
-                            {opponentExists ? (
-                                <Game
-                                    playerName={opponentName}
-                                    revealedWord={isP2Restarted.current ? "" : opponentRevealed}
-                                    attemptsLeft={opponentAttempts}
-                                    instruction={opponentInstruction}
-                                    isYou={false}
-                                />
 
-                            ) : (
-                                <div className="flex justify-center items-center h-full w-full">
-                                    <Image src="/WaitingForOpponent.gif" alt="Waiting for an opponent" width={500} height={500} />
-                                </div>
-                            )}
-                        </div>
+                        {/* Only show opponent game if NOT on mobile */}
+                        {!isMobile && (
+                            <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
+                                {opponentExists ? (
+                                    <Game
+                                        playerName={opponentName}
+                                        revealedWord={isP2Restarted.current ? "" : opponentRevealed}
+                                        attemptsLeft={opponentAttempts}
+                                        instruction={opponentInstruction}
+                                        isYou={false}
+                                    />
+
+                                ) : (
+                                    <div className="flex justify-center items-center h-full w-full">
+                                        <Image src="/WaitingForOpponent.gif" alt="Waiting for an opponent" width={500} height={500} />
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </>
                 ) : (
                     <>
 
-                        <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
-                            <Game
-                                playerName={opponentName}
-                                revealedWord={isP1Restarted.current ? "" : opponentRevealed}
-                                attemptsLeft={opponentAttempts}
-                                instruction={opponentInstruction}
-                                isYou={false}
-                            />
-                        </div>
+                        {/* Only show opponent game if NOT on mobile */}
+                        {!isMobile && (
+                            <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
+                                <Game
+                                    playerName={opponentName}
+                                    revealedWord={isP1Restarted.current ? "" : opponentRevealed}
+                                    attemptsLeft={opponentAttempts}
+                                    instruction={opponentInstruction}
+                                    isYou={false}
+                                />
+                            </div>
+                        )}
+
+                        {/* Always show your game */}
                         <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
                             <Game
                                 playerName={playerName}
@@ -332,8 +366,9 @@ export default function Lobby() {
                   50% { opacity: 0; }
                 }
           `}</style>
-
             </div>
+
+            {/*Leave Button */}
             <div className="mt-5 w-[20%]" >
                 <button onClick={handleLeave}><img src="/leaveLobby.gif" /></button>
             </div>
