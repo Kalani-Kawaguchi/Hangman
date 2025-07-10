@@ -20,7 +20,7 @@ function useIsMobile(breakpoint = 768) {
 export default function Lobby() {
     const [currentWord, setCurrentWord] = useState('');
     const [lobbyState, setLobbyState] = useState('waiting');
-    const isHostRef = useRef(false); // mose isHost into a useRef to always use the updated value
+    const isHostRef = useRef(false); // move isHost into a useRef to always use the updated value
     const [isHost, setIsHost] = useState(false);
     const isP1Restarted = useRef(false);
     const [p1Restarted, setP1Restarted] = useState(false);
@@ -31,11 +31,11 @@ export default function Lobby() {
     // Variables for player1 game
     const [revealedWord, setRevealedWord] = useState('');
     const [attemptsLeft, setAttemptsLeft] = useState("6");
-    const [instruction, setInstruction] = useState('Enter a word for your opponent to guess:');
+    const [instruction, setInstruction] = useState('');
     // Variables for player2 game
     const [opponentRevealed, setOpponentRevealed] = useState('');
     const [opponentAttempts, setOpponentAttempts] = useState("6");
-    const [opponentInstruction, setOpponentInstruction] = useState('Picking a word.');
+    const [opponentInstruction, setOpponentInstruction] = useState('');
     const [showRestart, setShowRestart] = useState(false);
 
     const ws = useRef<WebSocket | null>(null);
@@ -43,14 +43,12 @@ export default function Lobby() {
     const params = useSearchParams();
     const lobbyId = params.get('lobby');
     const playerId = params.get('playerID')
+
     const opponentExistsRef = useRef(false);
     const [opponentExists, setOpponentExists] = useState(false);
     const isMobile = useIsMobile();
-
-    // check to see when instruction is updated
-    useEffect(() => {
-        console.log("Instruction updated:", instruction);
-    }, [instruction]);
+    let newInstruction;
+    let newOppInstruction;
 
     useEffect(() => {
         if (!lobbyId || !playerId) return;
@@ -72,10 +70,19 @@ export default function Lobby() {
             const msg = JSON.parse(event.data);
             if (msg.type === 'start_game') {
                 setLobbyState('playing');
-                setInstruction('Type a letter to guess.');
+                newInstruction = 'Type a letter to guess.';
+                setInstruction(newInstruction);
                 setRevealedWord(msg.revealed);
                 setAttemptsLeft("6");
-                setOpponentInstruction('');
+                newOppInstruction = ''
+                setOpponentInstruction(newOppInstruction);
+                if (isHostRef.current) {
+                    if (ws.current) { ws.current.send(JSON.stringify({ type: 'instruction', payload: { player: 'One', instruction: newInstruction } })); }
+                    if (ws.current) { ws.current.send(JSON.stringify({ type: 'instruction', payload: { player: 'OneOpp', instruction: newOppInstruction } })); }
+                } else {
+                    if (ws.current) { ws.current.send(JSON.stringify({ type: 'instruction', payload: { player: 'Two', instruction: newInstruction } })); }
+                    if (ws.current) { ws.current.send(JSON.stringify({ type: 'instruction', payload: { player: 'TwoOpp', instruction: newOppInstruction } })); }
+                }
                 setOpponentRevealed(msg.opponent_revealed);
                 setOpponentAttempts("6");
                 setP1Restarted(false);
@@ -93,24 +100,52 @@ export default function Lobby() {
 
             } else if (msg.type === 'win') {
                 console.log(`Player ${msg.player} won. You are the host: ${isHostRef.current}.`)
-                if ((msg.player == "1" && isHostRef.current) || (msg.player == "2" && !isHostRef.current)) {
-                    setInstruction('You win!');
+                if (msg.player == "1" && isHostRef.current) {
+                    newInstruction = 'You win!';
+                    setInstruction(newInstruction);
+                    if (ws.current) { ws.current.send(JSON.stringify({ type: 'instruction', payload: { player: 'One', instruction: newInstruction } })); }
                     setRevealedWord(msg.word);
-                } else if ((msg.player == "1" && !isHostRef.current) || (msg.player == "2" && isHostRef.current)) {
-                    setOpponentInstruction("Opponent won!");
+                } else if (msg.player == "2" && !isHostRef.current) {
+                    newInstruction = 'You win!';
+                    setInstruction(newInstruction);
+                    if (ws.current) { ws.current.send(JSON.stringify({ type: 'instruction', payload: { player: 'Two', instruction: newInstruction } })); }
+                    setRevealedWord(msg.word);
+                } else if (msg.player == "1" && !isHostRef.current) {
+                    newOppInstruction = 'Opponent won!';
+                    setOpponentInstruction(newOppInstruction);
+                    if (ws.current) { ws.current.send(JSON.stringify({ type: 'instruction', payload: { player: 'TwoOpp', instruction: newOppInstruction } })); }
                     setOpponentRevealed(msg.word.split('').join(' '));
                 }
-
+                else if (msg.player == "2" && isHostRef.current) {
+                    newOppInstruction = 'Opponent won!';
+                    setOpponentInstruction(newOppInstruction);
+                    if (ws.current) { ws.current.send(JSON.stringify({ type: 'instruction', payload: { player: 'OneOpp', instruction: newOppInstruction } })); }
+                    setOpponentRevealed(msg.word.split('').join(' '));
+                }
             } else if (msg.type === 'lost') {
                 console.log(`Player ${msg.player} lost. You are the host: ${isHostRef.current}.`)
-                if ((msg.player == "1" && isHostRef.current) || (msg.player == "2" && !isHostRef.current)) {
-                    setInstruction('Game Over! The word was:');
+                if (msg.player == "1" && isHostRef.current) {
+                    newInstruction = 'Game Over! The word was:';
+                    setInstruction(newInstruction);
+                    if (ws.current) { ws.current.send(JSON.stringify({ type: 'instruction', payload: { player: 'One', instruction: newInstruction } })); }
                     setRevealedWord(msg.word);
-                } else if ((msg.player == "1" && !isHostRef.current) || (msg.player == "2" && isHostRef.current)) {
-                    setOpponentInstruction("Game Over! The word was:");
-                    setOpponentRevealed(msg.word);
+                } else if (msg.player == "2" && !isHostRef.current) {
+                    newInstruction = 'Game Over! The word was:';
+                    setInstruction(newInstruction);
+                    if (ws.current) { ws.current.send(JSON.stringify({ type: 'instruction', payload: { player: 'Two', instruction: newInstruction } })); }
+                    setRevealedWord(msg.word);
+                } else if (msg.player == "1" && !isHostRef.current) {
+                    newOppInstruction = 'Game Over! The word was:';
+                    setOpponentInstruction(newOppInstruction);
+                    if (ws.current) { ws.current.send(JSON.stringify({ type: 'instruction', payload: { player: 'TwoOpp', instruction: newOppInstruction } })); }
+                    setOpponentRevealed(msg.word.split('').join(' '));
                 }
-
+                else if (msg.player == "2" && isHostRef.current) {
+                    newOppInstruction = 'Game Over! The word was:';
+                    setOpponentInstruction(newOppInstruction);
+                    if (ws.current) { ws.current.send(JSON.stringify({ type: 'instruction', payload: { player: 'OneOpp', instruction: newOppInstruction } })); }
+                    setOpponentRevealed(msg.word.split('').join(' '));
+                }
             } else if (msg.type === 'join') {
                 console.log('A player joined the lobby');
                 if (isHostRef.current) {
@@ -122,27 +157,44 @@ export default function Lobby() {
 
             } else if (msg.type === 'submit') {
                 if ((isHostRef.current && msg.player === '2') || (!isHostRef.current && msg.player === '1')) {
-                    setOpponentInstruction("Ready. Waiting for you...");
+
+                    newOppInstruction = 'Ready. Waiting for you...';
+                    setOpponentInstruction(newOppInstruction);
+                    if (isHostRef.current) {
+                        if (ws.current) { ws.current.send(JSON.stringify({ type: 'instruction', payload: { player: 'OneOpp', instruction: newOppInstruction } })); }
+                    } else {
+                        if (ws.current) { ws.current.send(JSON.stringify({ type: 'instruction', payload: { player: 'TwoOpp', instruction: newOppInstruction } })); }
+                    }
                 }
 
             } else if (msg.type === 'restart') {
                 console.log(`Player ${msg.player} wants to play again.`)
                 if (msg.player == "1" && !isHostRef.current) {
-                    setOpponentInstruction('Wants to play again.');
+                    newOppInstruction = 'Wants to play again.';
+                    setOpponentInstruction(newOppInstruction);
+                    if (ws.current) { ws.current.send(JSON.stringify({ type: 'instruction', payload: { player: 'TwoOpp', instruction: newOppInstruction } })); }
                     setOpponentRevealed("");
                     setP1Restarted(true);
                     isP1Restarted.current = true;
-                    if (isP1Restarted.current) { console.log("Set P1 to true"); }
+                    if (isP1Restarted.current) { console.log("Set P1Restarted to true"); }
                 } else if (msg.player == "2" && isHostRef.current) {
-                    setOpponentInstruction('Wants to play again.');
+                    newOppInstruction = 'Wants to play again.';
+                    setOpponentInstruction(newOppInstruction);
+                    if (ws.current) { ws.current.send(JSON.stringify({ type: 'instruction', payload: { player: 'OneOpp', instruction: newOppInstruction } })); }
                     setOpponentRevealed("");
                     setP2Restarted(true);
                     isP2Restarted.current = true;
-                    if (isP2Restarted.current) { console.log("Set P2 to true"); }
+                    if (isP2Restarted.current) { console.log("Set P2Restarted to true"); }
                 }
                 if (isP1Restarted.current && isP2Restarted.current) {
-                    console.log("Both restarted");
-                    setOpponentInstruction("Picking a word.");
+                    console.log("Both Players restarted");
+                    newOppInstruction = 'Picking a word.';
+                    setOpponentInstruction(newOppInstruction);
+                    if (isHostRef.current) {
+                        if (ws.current) { ws.current.send(JSON.stringify({ type: 'instruction', payload: { player: 'OneOpp', instruction: newOppInstruction } })); }
+                    } else {
+                        if (ws.current) { ws.current.send(JSON.stringify({ type: 'instruction', payload: { player: 'TwoOpp', instruction: newOppInstruction } })); }
+                    }
                 }
 
             } else if (msg.type === 'close') {
@@ -164,18 +216,40 @@ export default function Lobby() {
         };
 
         return () => { };
-        // eslint-disable-next-line
+
     }, [lobbyId, playerId]);
 
     const fetchLobbyState = async () => {
+        console.log("Fetching lobby state...");
         const res = await fetch(`/api/lobby-state?lobby=${lobbyId}`, {
             method: 'GET',
             credentials: 'include',
         });
         if (res.ok) {
             const data = await res.json();
+            console.log(data)
             setLobbyState(data.state);
-            if (data.state === 'playing') setInstruction('Type a letter to guess.');
+            if (data.state === 'playing') {
+                setInstruction('Type a letter to guess.');
+            }
+            if (isHostRef.current) {
+                if (data.player2Exists === true) {
+                    setOpponentExists(true)
+                    opponentExistsRef.current = true;
+                    setOpponentName(data.player2Name)
+                }
+                setInstruction(data.player1Instruction);
+                setOpponentInstruction(data.player1OppInstruction);
+            }
+            if (!isHostRef.current) {
+                if (data.Player1Exists === true) {
+                    setOpponentExists(true)
+                    opponentExistsRef.current = true;
+                    setOpponentName(data.player1Name)
+                }
+                setInstruction(data.player2Instruction);
+                setOpponentInstruction(data.player2OppInstruction);
+            }
         }
     };
 
@@ -189,13 +263,16 @@ export default function Lobby() {
     const handleRestart = () => {
         setShowRestart(false);
         console.log("restarted");
-        setInstruction('Enter a word for your opponent to guess:');
         setRevealedWord('')
         setLobbyState('waiting');
+        newInstruction = 'Enter a word for your opponent to guess:';
+        setInstruction(newInstruction);
         if (isHostRef.current) {
+            if (ws.current) { ws.current.send(JSON.stringify({ type: 'instruction', payload: { player: 'One', instruction: newInstruction } })); }
             setP1Restarted(true);
             isP1Restarted.current = true;
         } else {
+            if (ws.current) { ws.current.send(JSON.stringify({ type: 'instruction', payload: { player: 'Two', instruction: newInstruction } })); }
             setP2Restarted(true);
             isP2Restarted.current = true;
         }
@@ -205,7 +282,13 @@ export default function Lobby() {
     const handleSubmitWord = () => {
         if (!currentWord) return alert('Enter a word first.');
         if (ws.current) { ws.current.send(JSON.stringify({ type: 'submit', payload: currentWord })); }
-        setInstruction('waiting for opponent word');
+        newInstruction = 'waiting for opponent word';
+        setInstruction(newInstruction);
+        if (isHostRef.current) {
+            if (ws.current) { ws.current.send(JSON.stringify({ type: 'instruction', payload: { player: 'One', instruction: newInstruction } })); }
+        } else {
+            if (ws.current) { ws.current.send(JSON.stringify({ type: 'instruction', payload: { player: 'Two', instruction: newInstruction } })); }
+        }
         console.log("submit word");
         // send a msg to backend telling other client to update opponents instruction to "They have submit their word"
         // if (ws.current) { ws.current.send(JSON.stringify({ type: 'submit', payload: "" })); }
