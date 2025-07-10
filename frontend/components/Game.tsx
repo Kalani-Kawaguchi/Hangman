@@ -32,9 +32,26 @@ export default function Game({
     isYou,
 }: GameProps) {
     const gif = getInstructionGif(instruction);
+    const nameChar = playerName.toLowerCase().split('');
+    const revealedChar = revealedWord.toLowerCase().split('');
+
+    const getImageName = (char) => {
+        if (char === "_") return "underscore";
+        if (char === " ") return "space";
+        return char;
+    };
+
     return (
         <div className="items-center text-center" style={{ flex: 1, padding: '1rem' }}>
-            <h2 >{playerName}</h2>
+            <h2 style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                {nameChar.map((char, index) => (
+                    <img
+                    key={index}
+                    src={`/${char}.gif`}
+                    alt={char}
+                    />
+                ))}
+            </h2>
             <Image
                 src={`/Platform${attemptsLeft}.gif`}
                 width={500}
@@ -51,7 +68,15 @@ export default function Game({
                     className="mx-auto"
                 />
             )}
-            <h3>{revealedWord}</h3>
+            <h3 style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                {revealedChar.map((char, index) => (
+                    <img
+                    key={index}
+                    src={`/${getImageName(char)}.gif`}
+                    alt={char}
+                    />
+                ))}
+            </h3>
         </div>
     );
 }
