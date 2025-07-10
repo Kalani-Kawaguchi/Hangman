@@ -1,6 +1,7 @@
 package ws
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -21,6 +22,11 @@ type Hub struct {
 type WSMessage struct {
 	Type    string      `json:"type"`
 	Payload interface{} `json:"payload"`
+}
+
+type InstructionPayload struct {
+	Player      string `json:"player"`
+	Instruction string `json:"instruction"`
 }
 
 var wsHub = &Hub{
@@ -89,8 +95,6 @@ func setupWebSocket(w http.ResponseWriter, r *http.Request) (*websocket.Conn, st
 
 func handleMessage(conn *websocket.Conn, lobbyID string, msg WSMessage) {
 	log.Printf("Received from %s: %v\n", lobbyID, msg)
-	// data := map[string]string{"type": "update", "word": "hangman"}
-	// conn.WriteJSON(data)
 
 	lobby, err := session.GetLobby(lobbyID)
 	if err != nil {
@@ -101,6 +105,8 @@ func handleMessage(conn *websocket.Conn, lobbyID string, msg WSMessage) {
 	switch msg.Type {
 	case "update":
 		handleUpdate(conn, lobbyID, playerID, msg.Payload)
+	case "instruction":
+		handleInstruction(conn, lobbyID, playerID, msg.Payload)
 	case "guess":
 		handleGuess(conn, lobbyID, playerID, msg.Payload)
 	case "submit":
@@ -110,6 +116,35 @@ func handleMessage(conn *websocket.Conn, lobbyID string, msg WSMessage) {
 	default:
 		log.Println("Unknown message type:", msg.Type)
 	}
+}
+
+func handleInstruction(conn *websocket.Conn, lobbyID string, playerID string, payload interface{}) {
+	// Marshal the interface{} payload back to JSON
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		log.Println("Failed to marshal payload:", err)
+		return
+	}
+
+	// Unmarshal into InstructionPayload struct
+	var instructionData InstructionPayload
+	if err := json.Unmarshal(payloadBytes, &instructionData); err != nil {
+		log.Println("Failed to unmarshal instruction payload:", err)
+		return
+	}
+	log.Println("Unmarshalled payload successfully")
+
+	lobby := wsHub.Lobbies[lobbyID]
+	if instructionData.Player == "One" {
+		lobby.Player1Instruction = instructionData.Instruction
+	} else if instructionData.Player == "Two" {
+		lobby.Player2Instruction = instructionData.Instruction
+	} else if instructionData.Player == "OneOpp" {
+		lobby.Player1OppInstruction = instructionData.Instruction
+	} else if instructionData.Player == "TwoOpp" {
+		lobby.Player2OppInstruction = instructionData.Instruction
+	}
+
 }
 
 func handleRestart(lobbyID string, payload interface{}) {
@@ -219,7 +254,7 @@ func handleSubmit(conn *websocket.Conn, lobbyID string, playerID string, payload
 	}
 
 	if lobby.Game1Ready && lobby.Game2Ready {
-		lobby.State = session.StateReady
+		lobby.State = session.StatePlaying
 		lobby.Player1Restarted = false
 		lobby.Player2Restarted = false
 		BroadcastToLobby(lobbyID, "update")

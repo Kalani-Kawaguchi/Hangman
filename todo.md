@@ -18,3 +18,6 @@ to join until the game has been completed.
     check the state on the server so that if we do refresh we get put back into 
     the correct state.
 
+
+* If game1ready/game2ready update instruction state in lobby.go to waiting
+to get fetched on refresh

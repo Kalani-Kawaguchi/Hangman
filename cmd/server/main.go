@@ -78,7 +78,25 @@ func HandleLobbyState(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	lobbyState := lobby.State
-	json.NewEncoder(w).Encode(map[string]string{"state": string(lobbyState)})
+	player1Exists := lobby.Player1Exists
+	player2Exists := lobby.Player2Exists
+	player1Name := lobby.Player1
+	player2Name := lobby.Player2
+	player1Instruction := lobby.Player1Instruction
+	player2Instruction := lobby.Player2Instruction
+	player1OppInstruction := lobby.Player1OppInstruction
+	player2OppInstruction := lobby.Player2OppInstruction
+	json.NewEncoder(w).Encode(map[string]any{
+		"state":                 string(lobbyState),
+		"player1Exists":         player1Exists,
+		"player2Exists":         player2Exists,
+		"player1Name":           player1Name,
+		"player2Name":           player2Name,
+		"player1Instruction":    player1Instruction,
+		"player2Instruction":    player2Instruction,
+		"player1OppInstruction": player1OppInstruction,
+		"player2OppInstruction": player2OppInstruction,
+	})
 }
 
 func getLobbyFromCookies(r *http.Request) (*session.Lobby, string, string, error) {
