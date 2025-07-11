@@ -54,16 +54,20 @@ export default function CreateLobby() {
                         <label htmlFor="lobbyName" style={{height: '100%'}}><Image src="/lobbyName.gif" alt="Lobby Name" width={0} height={0} style={{ height: '100%', width: 'auto' }}/></label>
                         <input
                             id="lobbyName"
+                            className="border-b-2 border-white"
                             value={lobbyName}
                             onChange={e => setLobbyName(e.target.value)}
+                            style={{width: '50%', marginRight: '10px'}}
                         />
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', height: '10vh'}}>
                         <label htmlFor="playerName" style={{height: '100%'}}><Image src="/playerName.gif" alt="Lobby Name" width={0} height={0} style={{ height: '100%', width: 'auto'}}/></label>
                         <input
                             id="playerName"
+                            className="border-b-2 border-white"
                             value={playerName}
                             onChange={e => setPlayerName(e.target.value)}
+                            style={{width: '50%', marginRight: '10px'}}
                         />
                     </div>
                     <button type="submit" style={{height: '10vh'}}>

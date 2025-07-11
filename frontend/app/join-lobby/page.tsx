@@ -91,8 +91,10 @@ export default function JoinLobby() {
                     <label htmlFor="playerName" style={{ height: '100%' }}><Image src="/playerName.gif" alt="Lobby Name" width={0} height={0} style={{ height: '100%', width: 'auto' }} /></label>
                     <input
                         id="playerName"
+                        className="border-b-2 border-white"
                         value={name}
                         onChange={e => setName(e.target.value)}
+                        style={{width: '50%', marginRight: '10px'}}
                     />
                 </div>
                 <br />
