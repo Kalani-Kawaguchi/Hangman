@@ -53,7 +53,7 @@ func newRest() *mux.Router {
 
 func main() {
 	r := newRest()
-	origins := handlers.AllowedOrigins([]string{"https://gohangman.vercel.app"})
+	origins := handlers.AllowedOrigins([]string{"https://gohangman.vercel.app", "http://localhost:3000"})
 	headers := handlers.AllowedHeaders([]string{"Content-Type"})
 	methods := handlers.AllowedMethods([]string{"POST", "GET", "OPTIONS"})
 	credentials := handlers.AllowCredentials()

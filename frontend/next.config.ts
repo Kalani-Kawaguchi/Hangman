@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",         // ONLY proxy /api routes
-        destination: "http://localhost:8080/:path*", // Your Go backend
+        destination: `${process.env.REACT_APP_API_URL}/:path*`, // Your Go backend
       },
     ];
   },
