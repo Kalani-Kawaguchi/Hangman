@@ -62,7 +62,7 @@ export default function Lobby() {
         // Only create the websocket if it doesn't already exist
         if (ws.current) return;
 
-        const socket = new WebSocket(`ws://https://hangman-qrdh.onrender.com/ws?lobby=${lobbyId}&id=${playerId}`);
+        const socket = new WebSocket(`ws://hangman-qrdh.onrender.com/ws?lobby=${lobbyId}&id=${playerId}`);
         ws.current = socket;
 
         socket.onopen = () => {
