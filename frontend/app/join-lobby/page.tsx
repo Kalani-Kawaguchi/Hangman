@@ -75,8 +75,8 @@ export default function JoinLobby() {
                                     <LobbyBox
                                         name={lobby.name}
                                         id={lobby.id}
-                                        playerCount={lobby.playerCount}
-                                        maxPlayers={2}
+                                        playerCount={lobby.playerCount+""}
+                                        maxPlayers={"2"}
                                         onClick={joinLobby}
                                     />
                                 </li>

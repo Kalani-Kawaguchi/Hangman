@@ -5,7 +5,6 @@ type GameProps = {
     revealedWord: string;
     attemptsLeft: string;
     instruction: string;
-    isYou: boolean;
 };
 
 const getInstructionGif = (instruction: string): string | null => {
@@ -30,13 +29,12 @@ export default function Game({
     revealedWord,
     attemptsLeft,
     instruction,
-    isYou,
 }: GameProps) {
     const gif = getInstructionGif(instruction);
     const nameChar = playerName.toLowerCase().split('');
     const revealedChar = revealedWord.toLowerCase().split('');
 
-    const getImageName = (char) => {
+    const getImageName = (char: string) => {
         if (char === "_") return "Underscore";
         if (char === " ") return "space";
         return char;

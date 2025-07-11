@@ -1,7 +1,15 @@
-const LobbyBox = ({ name, id, playerCount, maxPlayers, onClick }) => {
+type LobbyBoxProps = {
+    name: string;
+    id: string;
+    playerCount: string;
+    maxPlayers: string;
+    onClick: (lobbyId: string) => Promise<void>;
+}
+
+export default function LobbyBox({ name, id, playerCount, maxPlayers, onClick }: LobbyBoxProps) {
     const characters = name.toLowerCase().split('');
     const nameLength = name.length;
-    var widthPercent = "auto";
+    let widthPercent = "auto";
     if (nameLength >= 9){
         widthPercent = ((1 / name.length) * 100) + "%";
     }
@@ -38,7 +46,7 @@ const LobbyBox = ({ name, id, playerCount, maxPlayers, onClick }) => {
             {/* </div> */}
 
             <div className="lobby-name" style={{display: 'flex', justifyContent: 'center', alignItems: 'center', width: '75%', height: '50%'}}>
-                {characters.map((char, index) => (
+                {characters.map((char: string, index: number) => (
                     <img
                     key={index}
                     src={`/${char}.gif`}
@@ -48,11 +56,8 @@ const LobbyBox = ({ name, id, playerCount, maxPlayers, onClick }) => {
                 ))}
             </div>
             <div className="player-count" style={{width: '25%', height: '50%'}}>
-                {parseInt(playerCount, 10) === 1 ? <img src="/1outOf2.gif"/> : 
-                    parseInt(playerCount, 10) === 2 ? <img src="/2outOf2.gif"/> : null}
+                <img src={`/${playerCount}outOf${maxPlayers}.gif`}/>
             </div>
         </button>
-    )
+    );
 }
-
-export default LobbyBox
