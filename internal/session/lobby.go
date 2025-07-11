@@ -64,6 +64,8 @@ type LobbySummary struct {
 	Player2Instruction    string     `json:"player2Instruction"`
 	Player1OppInstruction string     `json:"player1OppInstruction"`
 	Player2OppInstruction string     `json:"player2OppInstruction"`
+	Player1RevealedWord   []rune     `json:"player1RevealedWord"`
+	Player2RevealedWord   []rune     `json:"player2RevealedWord"`
 }
 
 // Thread-safe map to store active lobbies
@@ -154,6 +156,8 @@ func GetLobbyList() []LobbySummary {
 				Player2Instruction:    lobby.Player2Instruction,
 				Player1OppInstruction: lobby.Player1OppInstruction,
 				Player2OppInstruction: lobby.Player2OppInstruction,
+				Player1RevealedWord:   lobby.Game2.Revealed,
+				Player2RevealedWord:   lobby.Game1.Revealed,
 			})
 	}
 	return availableLobbies

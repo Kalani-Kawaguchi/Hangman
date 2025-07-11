@@ -44,6 +44,8 @@ export default function Lobby() {
     const lobbyId = params.get('lobby');
     const playerId = params.get('playerID')
 
+    // const [hostState, setHostState] = useState('');
+    // const [oppState, setOppState] = useState('');
     const opponentExistsRef = useRef(false);
     const [opponentExists, setOpponentExists] = useState(false);
     const isMobile = useIsMobile();
@@ -227,28 +229,60 @@ export default function Lobby() {
         });
         if (res.ok) {
             const data = await res.json();
-            console.log(data)
+            console.log(data);
             setLobbyState(data.state);
             if (data.state === 'playing') {
                 setInstruction('Type a letter to guess.');
             }
             if (isHostRef.current) {
                 if (data.player2Exists === true) {
-                    setOpponentExists(true)
+                    setOpponentExists(true);
                     opponentExistsRef.current = true;
-                    setOpponentName(data.player2Name)
+                    setOpponentName(data.player2Name);
                 }
                 setInstruction(data.player1Instruction);
                 setOpponentInstruction(data.player1OppInstruction);
+                if (data.player1Restarted === true) {
+                    setP1Restarted(true);
+                    console.log("Setting showRestart to true");
+                    setShowRestart(true);
+                } else {
+                    setP1Restarted(false);
+                    console.log("Setting showRestart to true");
+                    setShowRestart(false);
+                }
+                if (data.player2Restarted === true) {
+                    setP2Restarted(true);
+                } else {
+                    setP2Restarted(false);
+                }
+                setRevealedWord(data.player1RevealedWord);
+                setOpponentRevealed(data.player2RevealedWord);
             }
             if (!isHostRef.current) {
                 if (data.Player1Exists === true) {
                     setOpponentExists(true)
                     opponentExistsRef.current = true;
-                    setOpponentName(data.player1Name)
+                    setOpponentName(data.player1Name);
                 }
                 setInstruction(data.player2Instruction);
                 setOpponentInstruction(data.player2OppInstruction);
+                if (data.player1Restarted === true) {
+                    setP1Restarted(true);
+                } else {
+                    setP1Restarted(false);
+                }
+                if (data.player2Restarted === true) {
+                    setP2Restarted(true);
+                    console.log("Setting showRestart to true");
+                    setShowRestart(true);
+                } else {
+                    setP2Restarted(false);
+                    console.log("Setting showRestart to true");
+                    setShowRestart(false);
+                }
+                setRevealedWord(data.player2RevealedWord);
+                setOpponentRevealed(data.player1RevealedWord);
             }
         }
     };
@@ -298,7 +332,7 @@ export default function Lobby() {
 
     const handleKeyDown = (e: KeyboardEvent) => {
         const key: string = e.key.toLowerCase();
-        if (lobbyState === 'waiting') {
+        if (lobbyState === 'waiting' || instruction === 'Enter a word for your opponent to guess:') {
             if (/^[a-z]$/.test(key)) setCurrentWord((w: string) => w + key);
             else if (e.key === 'Backspace') { setCurrentWord((w: string) => w.slice(0, -1)); e.preventDefault(); }
         } else if (lobbyState === 'playing') {
@@ -355,7 +389,7 @@ export default function Lobby() {
                 {isHost ? (
                     <>
                         {/* Always show your game */}
-                        <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
+                        <div style={{ flex: 1, padding: '1rem', borderRight: '1px solid #ccc' }}>
                             <Game
                                 playerName={playerName}
                                 revealedWord={lobbyState === 'waiting' ? currentWord : revealedWord}
@@ -363,26 +397,29 @@ export default function Lobby() {
                                 instruction={instruction}
                                 isYou={true}
                             />
-                            {lobbyState === 'waiting' ? (
+                            {instruction === 'Enter a word for your opponent to guess:' ? (
                                 <div className="flex justify-center-safe w-full">
                                     <button className="flex justify-center" onClick={handleSubmitWord}>
                                         <img className="w-[40%]" src="/submitWord.gif" />
                                     </button>
                                 </div>
                             ) : null}
-                            {showRestart && (
+                            {(instruction == 'You win!' || instruction == 'Game Over! The word was:') ? (
                                 <div className="flex justify-center-safe w-full">
                                     <button className="flex justify-center" onClick={handleRestart}>
                                         <Image className="w-[40%]" src="/PlayAgain.gif" alt="Play again button" width={0} height={0} />
                                     </button>
                                 </div>
+
+                            ) : (
+                                <div></div>
                             )}
                             <br />
                         </div>
 
                         {/* Only show opponent game if NOT on mobile */}
                         {!isMobile && (
-                            <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
+                            <div style={{ flex: 1, padding: '1rem', borderLeft: '1px solid #ccc' }}>
                                 {opponentExists ? (
                                     <Game
                                         playerName={opponentName}
@@ -405,7 +442,7 @@ export default function Lobby() {
 
                         {/* Only show opponent game if NOT on mobile */}
                         {!isMobile && (
-                            <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
+                            <div style={{ flex: 1, padding: '1rem', borderRight: '1px solid #ccc' }}>
                                 <Game
                                     playerName={opponentName}
                                     revealedWord={isP1Restarted.current ? "" : opponentRevealed}
@@ -417,7 +454,7 @@ export default function Lobby() {
                         )}
 
                         {/* Always show your game */}
-                        <div style={{ flex: 1, padding: '1rem', border: '1px solid #ccc' }}>
+                        <div style={{ flex: 1, padding: '1rem', borderLeft: '1px solid #ccc' }}>
                             <Game
                                 playerName={playerName}
                                 revealedWord={lobbyState === 'waiting' ? currentWord : revealedWord}
@@ -425,19 +462,21 @@ export default function Lobby() {
                                 instruction={instruction}
                                 isYou={true}
                             />
-                            {lobbyState === 'waiting' ? (
-                                <div className="flex justify-center w-full">
+                            {instruction === 'Enter a word for your opponent to guess:' ? (
+                                < div className="flex justify-center w-full">
                                     <button className="flex justify-center" onClick={handleSubmitWord}>
                                         <img className="w-[40%]" src="/submitWord.gif" />
                                     </button>
                                 </div>
                             ) : null}
-                            {showRestart && (
+                            {(instruction == 'You win!' || instruction == 'Game Over! The word was:') ? (
                                 <div className="flex justify-center-safe">
                                     <button className="flex justify-center" onClick={handleRestart}>
                                         <Image className="w-[40%]" src="/PlayAgain.gif" alt="Play again button" width={0} height={0} />
                                     </button>
                                 </div>
+                            ) : (
+                                <div></div>
                             )}
                             <br />
                         </div>
