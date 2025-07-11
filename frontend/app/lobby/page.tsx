@@ -256,8 +256,22 @@ export default function Lobby() {
                 } else {
                     setP2Restarted(false);
                 }
-                setRevealedWord(data.player1RevealedWord);
-                setOpponentRevealed(data.player2RevealedWord);
+                if (data.player1Ready && data.player2Ready) {
+                    setRevealedWord(data.player1RevealedWord);
+                    setOpponentRevealed(data.player2RevealedWord);
+                }
+                if (data.state === 'ended') {
+                    setRevealedWord('');
+                    setOpponentRevealed('');
+                }
+                setAttemptsLeft(data.player1AttemptsLeft);
+                if (data.player1Ready === false) {
+                    setAttemptsLeft("6")
+                }
+                setOpponentAttempts(data.player2AttemptsLeft);
+                if (data.player2Ready === false) {
+                    setOpponentAttempts("6")
+                }
             }
             if (!isHostRef.current) {
                 if (data.Player1Exists === true) {
@@ -281,8 +295,22 @@ export default function Lobby() {
                     console.log("Setting showRestart to true");
                     setShowRestart(false);
                 }
-                setRevealedWord(data.player2RevealedWord);
-                setOpponentRevealed(data.player1RevealedWord);
+                if (data.player1Ready && data.player2Ready) {
+                    setRevealedWord(data.player2RevealedWord);
+                    setOpponentRevealed(data.player1RevealedWord);
+                }
+                if (data.state === 'ended') {
+                    setRevealedWord('');
+                    setOpponentRevealed('');
+                }
+                setAttemptsLeft(data.player2AttemptsLeft);
+                if (data.player2Ready === false) {
+                    setAttemptsLeft("6")
+                }
+                setOpponentAttempts(data.player1AttemptsLeft);
+                if (data.player1Ready === false) {
+                    setOpponentAttempts("6")
+                }
             }
         }
     };
@@ -392,7 +420,7 @@ export default function Lobby() {
                         <div style={{ flex: 1, padding: '1rem', borderRight: '1px solid #ccc' }}>
                             <Game
                                 playerName={playerName}
-                                revealedWord={lobbyState === 'waiting' ? currentWord : revealedWord}
+                                revealedWord={(lobbyState === 'waiting' || (lobbyState === 'ended' && p1Restarted)) ? currentWord : revealedWord}
                                 attemptsLeft={attemptsLeft}
                                 instruction={instruction}
                                 isYou={true}
@@ -457,7 +485,7 @@ export default function Lobby() {
                         <div style={{ flex: 1, padding: '1rem', borderLeft: '1px solid #ccc' }}>
                             <Game
                                 playerName={playerName}
-                                revealedWord={lobbyState === 'waiting' ? currentWord : revealedWord}
+                                revealedWord={(lobbyState === 'waiting' || (lobbyState === 'ended' && p2Restarted)) ? currentWord : revealedWord}
                                 attemptsLeft={attemptsLeft}
                                 instruction={instruction}
                                 isYou={true}

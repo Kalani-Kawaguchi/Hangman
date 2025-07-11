@@ -90,6 +90,10 @@ func HandleLobbyState(w http.ResponseWriter, r *http.Request) {
 	player2Restarted := lobby.Player2Restarted
 	player1RevealedWord := string(lobby.Game2.Revealed)
 	player2RevealedWord := string(lobby.Game1.Revealed)
+	player1AttemptsLeft := lobby.Game2.AttemptsLeft
+	player2AttemptsLeft := lobby.Game1.AttemptsLeft
+	player1Ready := lobby.Game2Ready
+	player2Ready := lobby.Game1Ready
 	json.NewEncoder(w).Encode(map[string]any{
 		"state":                 string(lobbyState),
 		"player1Exists":         player1Exists,
@@ -104,6 +108,10 @@ func HandleLobbyState(w http.ResponseWriter, r *http.Request) {
 		"player2Restarted":      player2Restarted,
 		"player1RevealedWord":   player1RevealedWord,
 		"player2RevealedWord":   player2RevealedWord,
+		"player1AttemptsLeft":   player1AttemptsLeft,
+		"player2AttemptsLeft":   player2AttemptsLeft,
+		"player1Ready":          player1Ready,
+		"player2Ready":          player2Ready,
 	})
 }
 
