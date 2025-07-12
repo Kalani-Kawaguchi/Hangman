@@ -4,6 +4,7 @@ type GameProps = {
     playerName: string;
     revealedWord: string;
     attemptsLeft: string;
+    guessedLetters: string;
     instruction: string;
     isMobile: boolean;
     guessing: boolean;
@@ -30,6 +31,7 @@ export default function Game({
     playerName,
     revealedWord,
     attemptsLeft,
+    guessedLetters,
     instruction,
     isMobile,
     guessing,
@@ -37,6 +39,7 @@ export default function Game({
     const gif = getInstructionGif(instruction);
     const nameChar = playerName.toLowerCase().split('');
     const revealedChar = revealedWord.toLowerCase().split('');
+    const lettersToDisplay = guessedLetters ?? '';
 
     const getImageName = (char: string) => {
         if (char === "_") return "Underscore";
@@ -61,6 +64,19 @@ export default function Game({
                 height={500}
                 alt="Hangman picture"
             />
+
+            {(guessing && lettersToDisplay) ? (
+                <div id="guessedLetters" className="flex flex-wrap justify-center">
+                    <div className="border border-white rounded px-4 py-2 flex flex-wrap justify-center">
+                        {lettersToDisplay.split('').map((char: string, index: number) => (
+                            <span key={index} className="border-white mx-2">
+                                {char}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            ) : null}
+
             {gif ?
                 <Image
                     src={gif}

@@ -38,10 +38,12 @@ export default function Lobby() {
     const [revealedWord, setRevealedWord] = useState('');
     const [attemptsLeft, setAttemptsLeft] = useState("6");
     const [instruction, setInstruction] = useState('');
+    const [guessedLetters, setGuessedLetters] = useState('');
     // Variables for player2 game
     const [opponentRevealed, setOpponentRevealed] = useState('');
     const [opponentAttempts, setOpponentAttempts] = useState("6");
     const [opponentInstruction, setOpponentInstruction] = useState('');
+    const [opponentGuessedLetters, setOpponentGuessedLetters] = useState('');
 
     const ws = useRef<WebSocket | null>(null);
     const router = useRouter();
@@ -62,8 +64,8 @@ export default function Lobby() {
         // Only create the websocket if it doesn't already exist
         if (ws.current) return;
 
-        const socket = new WebSocket(`wss://hangman-qrdh.onrender.com/ws?lobby=${lobbyId}&id=${playerId}`);
-        // const socket = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}&id=${playerId}`);
+        // const socket = new WebSocket(`wss://hangman-qrdh.onrender.com/ws?lobby=${lobbyId}&id=${playerId}`);
+        const socket = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}&id=${playerId}`);
         ws.current = socket;
 
         socket.onopen = () => {
@@ -103,6 +105,8 @@ export default function Lobby() {
                     setOpponentRevealed(msg.opponent_revealed);
                     setAttemptsLeft(String(msg.attempts));
                     setOpponentAttempts(String(msg.opponent_attempts));
+                    setGuessedLetters(msg.guessed_letters);
+                    setOpponentGuessedLetters(msg.opponent_guessed_letters);
                 }
 
             } else if (msg.type === 'win') {
@@ -246,6 +250,8 @@ export default function Lobby() {
                 }
                 setInstruction(data.player1Instruction);
                 setOpponentInstruction(data.player1OppInstruction);
+                setGuessedLetters(data.player1GuessedLetters);
+                setOpponentGuessedLetters(data.player2GuessedLetters);
                 if (data.player1Restarted === true) {
                     setP1Restarted(true);
                     console.log("Setting showRestart to true");
@@ -283,6 +289,8 @@ export default function Lobby() {
                 }
                 setInstruction(data.player2Instruction);
                 setOpponentInstruction(data.player2OppInstruction);
+                setGuessedLetters(data.player2GuessedLetters);
+                setOpponentGuessedLetters(data.player1GuessedLetters);
                 if (data.player1Restarted === true) {
                     setP1Restarted(true);
                 } else {
@@ -423,6 +431,7 @@ export default function Lobby() {
                                 playerName={playerName}
                                 revealedWord={(lobbyState === 'waiting' || (lobbyState === 'ended' && p1Restarted)) ? currentWord : revealedWord}
                                 attemptsLeft={attemptsLeft}
+                                guessedLetters={guessedLetters}
                                 instruction={instruction}
                                 isMobile={isMobile}
                                 guessing={lobbyState === 'playing' || lobbyState === 'ended'}
@@ -475,6 +484,7 @@ export default function Lobby() {
                                         playerName={opponentName}
                                         revealedWord={isP2Restarted.current ? "" : opponentRevealed}
                                         attemptsLeft={opponentAttempts}
+                                        guessedLetters={opponentGuessedLetters}
                                         instruction={opponentInstruction}
                                         isMobile={isMobile}
                                         guessing={lobbyState === 'playing' || lobbyState === 'ended'}
@@ -498,6 +508,7 @@ export default function Lobby() {
                                     playerName={opponentName}
                                     revealedWord={isP1Restarted.current ? "" : opponentRevealed}
                                     attemptsLeft={opponentAttempts}
+                                    guessedLetters={opponentGuessedLetters}
                                     instruction={opponentInstruction}
                                     isMobile={isMobile}
                                     guessing={lobbyState === 'playing' || lobbyState === 'ended'}
@@ -511,6 +522,7 @@ export default function Lobby() {
                                 playerName={playerName}
                                 revealedWord={(lobbyState === 'waiting' || (lobbyState === 'ended' && p2Restarted)) ? currentWord : revealedWord}
                                 attemptsLeft={attemptsLeft}
+                                guessedLetters={guessedLetters}
                                 instruction={instruction}
                                 isMobile={isMobile}
                                 guessing={lobbyState === 'playing' || lobbyState === 'ended'}

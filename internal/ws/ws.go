@@ -300,18 +300,22 @@ func BroadcastToLobby(lobbyID string, t string) {
 	for conn, id := range lobby.Clients {
 		switch t {
 		case "update":
-			data := map[string]string{"type": "update", "revealed": "", "attempts": "6", "opponent_revealed": "", "opponent_attempts": "6"}
+			data := map[string]string{"type": "update", "revealed": "", "attempts": "6", "opponent_revealed": "", "opponent_attempts": "6", "guessed_letters": "", "opponent_guessed_letters": ""}
 			if id == lobby.Player1ID {
 				data["revealed"] = string(lobby.Game2.Revealed)
 				data["attempts"] = strconv.Itoa(lobby.Game2.AttemptsLeft)
 				data["opponent_revealed"] = string(lobby.Game1.Revealed)
 				data["opponent_attempts"] = strconv.Itoa(lobby.Game1.AttemptsLeft)
+				data["guessed_letters"] = string(lobby.Game2.GuessedLetters)
+				data["opponent_guessed_letters"] = string(lobby.Game1.GuessedLetters)
 				conn.WriteJSON(data)
 			} else if id == lobby.Player2ID {
 				data["revealed"] = string(lobby.Game1.Revealed)
 				data["attempts"] = strconv.Itoa(lobby.Game1.AttemptsLeft)
 				data["opponent_revealed"] = string(lobby.Game2.Revealed)
 				data["opponent_attempts"] = strconv.Itoa(lobby.Game2.AttemptsLeft)
+				data["guessed_letters"] = string(lobby.Game1.GuessedLetters)
+				data["opponent_guessed_letters"] = string(lobby.Game2.GuessedLetters)
 				conn.WriteJSON(data)
 			}
 		case "start_game":
