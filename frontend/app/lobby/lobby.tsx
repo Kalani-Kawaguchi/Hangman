@@ -440,10 +440,11 @@ export default function Lobby() {
                                         position: 'absolute',
                                         bottom: 0,
                                         left: 0,
-                                        width: '100%',
+                                        width: '1px',
                                         height: '1px',
                                         opacity: 0,
                                         zIndex: -1,
+                                        pointerEvents: 'none',
                                     }}
                                 />
                             )}
@@ -528,10 +529,11 @@ export default function Lobby() {
                                         position: 'absolute',
                                         bottom: 0,
                                         left: 0,
-                                        width: '100%',
+                                        width: '1px',
                                         height: '1px',
                                         opacity: 0,
                                         zIndex: -1,
+                                        pointerEvents: 'none',
                                     }}
                                 />
                             )}
