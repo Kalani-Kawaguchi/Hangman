@@ -5,6 +5,8 @@ type GameProps = {
     revealedWord: string;
     attemptsLeft: string;
     instruction: string;
+    isMobile: boolean;
+    guessing: boolean;
 };
 
 const getInstructionGif = (instruction: string): string | null => {
@@ -29,6 +31,8 @@ export default function Game({
     revealedWord,
     attemptsLeft,
     instruction,
+    isMobile,
+    guessing,
 }: GameProps) {
     const gif = getInstructionGif(instruction);
     const nameChar = playerName.toLowerCase().split('');
@@ -68,7 +72,11 @@ export default function Game({
                 :
                 <p>{instruction}</p>
             }
-            <div className="w-full flex justify-center overflow-x-auto">
+
+            <div
+                className={`w-full flex justify-center overflow-x-auto ${(isMobile && !guessing && instruction !== 'waiting for opponent word') ? 'border-b-2 border-white' : ''
+                    }`}
+            >
                 <h3 className="flex flex-wrap justify-center">
                     {revealedChar.map((char, index) => (
                         <img
@@ -80,6 +88,6 @@ export default function Game({
                     ))}
                 </h3>
             </div>
-        </div>
+        </div >
     );
 }

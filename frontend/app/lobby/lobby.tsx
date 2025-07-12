@@ -63,6 +63,7 @@ export default function Lobby() {
         if (ws.current) return;
 
         const socket = new WebSocket(`wss://hangman-qrdh.onrender.com/ws?lobby=${lobbyId}&id=${playerId}`);
+        // const socket = new WebSocket(`ws://localhost:8080/ws?lobby=${lobbyId}&id=${playerId}`);
         ws.current = socket;
 
         socket.onopen = () => {
@@ -396,7 +397,7 @@ export default function Lobby() {
     }, [playerId, lobbyId, isHost]);
 
     useEffect(() => {
-        if(!isMobile){
+        if (!isMobile) {
             window.addEventListener('keydown', handleKeyDown);
             return () => window.removeEventListener('keydown', handleKeyDown);
         }
@@ -411,7 +412,7 @@ export default function Lobby() {
             <div style={{ height: '25vh', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <Image src="/hangman.gif" alt="Hangman" width={0} height={0} style={{ height: 'auto', width: '75vh' }} />
             </div>
-            
+
             {/* Game Section */}
             <div style={{ display: 'flex', flexDirection: 'row' }}>
                 {isHost ? (
@@ -423,6 +424,8 @@ export default function Lobby() {
                                 revealedWord={(lobbyState === 'waiting' || (lobbyState === 'ended' && p1Restarted)) ? currentWord : revealedWord}
                                 attemptsLeft={attemptsLeft}
                                 instruction={instruction}
+                                isMobile={isMobile}
+                                guessing={lobbyState === 'playing' || lobbyState === 'ended'}
                             />
                             {isMobile && (
                                 <input
@@ -431,7 +434,7 @@ export default function Lobby() {
                                     inputMode="text"
                                     autoFocus
                                     onBlur={(e) => e.target.focus()} // re-focus if it blurs
-                                    onChange={() => {}} // prevents React warning
+                                    onChange={() => { }} // prevents React warning
                                     onKeyDown={(e) => handleKeyDown(e.nativeEvent)}
                                     style={{
                                         position: 'absolute',
@@ -473,6 +476,8 @@ export default function Lobby() {
                                         revealedWord={isP2Restarted.current ? "" : opponentRevealed}
                                         attemptsLeft={opponentAttempts}
                                         instruction={opponentInstruction}
+                                        isMobile={isMobile}
+                                        guessing={lobbyState === 'playing' || lobbyState === 'ended'}
                                     />
 
                                 ) : (
@@ -494,6 +499,8 @@ export default function Lobby() {
                                     revealedWord={isP1Restarted.current ? "" : opponentRevealed}
                                     attemptsLeft={opponentAttempts}
                                     instruction={opponentInstruction}
+                                    isMobile={isMobile}
+                                    guessing={lobbyState === 'playing' || lobbyState === 'ended'}
                                 />
                             </div>
                         )}
@@ -505,6 +512,8 @@ export default function Lobby() {
                                 revealedWord={(lobbyState === 'waiting' || (lobbyState === 'ended' && p2Restarted)) ? currentWord : revealedWord}
                                 attemptsLeft={attemptsLeft}
                                 instruction={instruction}
+                                isMobile={isMobile}
+                                guessing={lobbyState === 'playing' || lobbyState === 'ended'}
                             />
                             {isMobile && (
                                 <input
@@ -513,7 +522,7 @@ export default function Lobby() {
                                     inputMode="text"
                                     autoFocus
                                     onBlur={(e) => e.target.focus()} // re-focus if it blurs
-                                    onChange={() => {}} // prevents React warning
+                                    onChange={() => { }} // prevents React warning
                                     onKeyDown={(e) => handleKeyDown(e.nativeEvent)}
                                     style={{
                                         position: 'absolute',
