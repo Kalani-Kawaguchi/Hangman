@@ -430,7 +430,6 @@ export default function Lobby() {
                                     autoFocus
                                     onBlur={(e) => e.target.focus()} // re-focus if it blurs
                                     onChange={() => {}} // prevents React warning
-                                    onKeyDown={(e) => handleKeyDown(e.nativeEvent)}
                                     style={{
                                         position: 'absolute',
                                         bottom: 0,
@@ -512,7 +511,6 @@ export default function Lobby() {
                                     autoFocus
                                     onBlur={(e) => e.target.focus()} // re-focus if it blurs
                                     onChange={() => {}} // prevents React warning
-                                    onKeyDown={(e) => handleKeyDown(e.nativeEvent)}
                                     style={{
                                         position: 'absolute',
                                         bottom: 0,
