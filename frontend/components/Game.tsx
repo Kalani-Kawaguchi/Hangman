@@ -63,6 +63,7 @@ export default function Game({
                 width={500}
                 height={500}
                 alt="Hangman picture"
+                className="mx-auto"
             />
 
             {(guessing && lettersToDisplay) ? (
