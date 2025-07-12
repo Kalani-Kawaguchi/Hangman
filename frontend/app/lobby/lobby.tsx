@@ -422,7 +422,7 @@ export default function Lobby() {
                                 attemptsLeft={attemptsLeft}
                                 instruction={instruction}
                             />
-                            {/* {isMobile && (
+                            {isMobile && (
                                 <input
                                     id="mobileKeyboardInput"
                                     type="text"
@@ -440,7 +440,7 @@ export default function Lobby() {
                                         zIndex: -1,
                                     }}
                                 />
-                            )} */}
+                            )}
                             {instruction === 'Enter a word for your opponent to guess:' ? (
                                 <div className="flex justify-center-safe w-full">
                                     <button className="flex justify-center" onClick={handleSubmitWord}>
