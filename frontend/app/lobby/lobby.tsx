@@ -422,6 +422,26 @@ export default function Lobby() {
                                 attemptsLeft={attemptsLeft}
                                 instruction={instruction}
                             />
+                            {isMobile && (
+                                <input
+                                    id="mobileKeyboardInput"
+                                    type="text"
+                                    inputMode="text"
+                                    autoFocus
+                                    onBlur={(e) => e.target.focus()} // re-focus if it blurs
+                                    onChange={() => {}} // prevents React warning
+                                    onKeyDown={(e) => handleKeyDown(e.nativeEvent)}
+                                    style={{
+                                        position: 'absolute',
+                                        bottom: 0,
+                                        left: 0,
+                                        width: '100%',
+                                        height: '1px',
+                                        opacity: 0,
+                                        zIndex: -1,
+                                    }}
+                                />
+                            )}
                             {instruction === 'Enter a word for your opponent to guess:' ? (
                                 <div className="flex justify-center-safe w-full">
                                     <button className="flex justify-center" onClick={handleSubmitWord}>
@@ -484,6 +504,26 @@ export default function Lobby() {
                                 attemptsLeft={attemptsLeft}
                                 instruction={instruction}
                             />
+                            {isMobile && (
+                                <input
+                                    id="mobileKeyboardInput"
+                                    type="text"
+                                    inputMode="text"
+                                    autoFocus
+                                    onBlur={(e) => e.target.focus()} // re-focus if it blurs
+                                    onChange={() => {}} // prevents React warning
+                                    onKeyDown={(e) => handleKeyDown(e.nativeEvent)}
+                                    style={{
+                                        position: 'absolute',
+                                        bottom: 0,
+                                        left: 0,
+                                        width: '100%',
+                                        height: '1px',
+                                        opacity: 0,
+                                        zIndex: -1,
+                                    }}
+                                />
+                            )}
                             {instruction === 'Enter a word for your opponent to guess:' ? (
                                 < div className="flex justify-center w-full">
                                     <button className="flex justify-center" onClick={handleSubmitWord}>
