@@ -1,7 +1,8 @@
+'use client'
 import Link from 'next/link'
 import Image from 'next/image'
 import Head from 'next/head';
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
 export default function Home() {
   useEffect(() => {
