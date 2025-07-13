@@ -2,7 +2,7 @@
 
 :root {
     --background: #000000;
-    --foreground: #171717;
+    --foreground: #ffffff;
 }
 
 @theme inline {
@@ -21,6 +21,7 @@
 
 @font-face {
     font-family: handwritten;
+    color: white;
     src: url(../public/Schoolbell-Regular.ttf);
 }
 
