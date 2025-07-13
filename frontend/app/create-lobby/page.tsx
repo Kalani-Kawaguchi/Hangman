@@ -4,6 +4,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link'
 import Image from 'next/image'
 
+export const metadata = {
+  title: "Hangman - Create Lobby",
+  description: "Create a Lobby for Hangman"
+}
+
 export default function CreateLobby() {
     const [lobbyName, setLobbyName] = useState('');
     const [playerName, setPlayerName] = useState('');
@@ -42,8 +47,6 @@ export default function CreateLobby() {
 
     return (
         <>
-            <title>Hangman - Create Lobby</title>
-            <meta name="description" content="Create a Lobby for Hangman" />
             <main>
                 <div style={{ height: '25vh', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                         <Image src="/hangman.gif" alt="Hangman" width={0} height={0} style={{ height: 'auto', width: '75vh' }} />
