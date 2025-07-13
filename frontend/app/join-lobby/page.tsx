@@ -4,12 +4,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link'
 import Image from 'next/image'
 import LobbyBox from '../../components/LobbyBox';
-import type { Metadata } from 'next'
- 
-export const metadata: Metadata = {
-  title: 'Hangman - Join Lobby',
-  description: 'Join a Lobby to Play Hangman',
-}
 
 type Lobby = {
     id: string;
@@ -65,47 +59,51 @@ export default function JoinLobby() {
     };
 
     return (
-        <main>
-            <div style={{ height: '25vh', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <Image src="/hangman.gif" alt="Hangman" width={0} height={0} style={{ height: 'auto', width: '75vh' }} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '10vh' }}>
-                <Image src="/lobbies.gif" alt="Lobbies" width={0} height={0} style={{ height: '100%', width: 'auto' }} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '40vh' }}>
-                <div style={{ height: '30vh', width: '100%'}}>
-                    <ul>
-                        {Array.isArray(lobbies) && lobbies.length > 0 ? (
-                            lobbies.map(lobby => (
-                                <li key={lobby.id} style={{ marginBottom: '20px' }}>
-                                    <LobbyBox
-                                        name={lobby.name}
-                                        id={lobby.id}
-                                        playerCount={lobby.playerCount+""}
-                                        maxPlayers={"2"}
-                                        onClick={joinLobby}
-                                    />
-                                </li>
-                            ))
-                        ) : (
-                            <li><Image src="/noLobby.gif" alt="No Lobbies" width={0} height={0} style={{ height: '100%', width: 'auto' }} /></li>
-                        )}
-                    </ul>
+        <>
+            <title>Hangman - Join Lobby</title>
+            <meta name="description" content="Join a Lobby to Play Hangman" />
+            <main>
+                <div style={{ height: '25vh', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <Image src="/hangman.gif" alt="Hangman" width={0} height={0} style={{ height: 'auto', width: '75vh' }} />
                 </div>
-                <br />
-                <div style={{ display: 'flex', alignItems: 'center', height: '10vh' }}>
-                    <label htmlFor="playerName" style={{ height: '100%' }}><Image src="/playerName.gif" alt="Lobby Name" width={0} height={0} style={{ height: '100%', width: 'auto' }} /></label>
-                    <input
-                        id="playerName"
-                        className="border-b-2 border-white"
-                        value={name}
-                        onChange={e => setName(e.target.value)}
-                        style={{width: '50%', marginRight: '10px'}}
-                    />
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '10vh' }}>
+                    <Image src="/lobbies.gif" alt="Lobbies" width={0} height={0} style={{ height: '100%', width: 'auto' }} />
                 </div>
-                <br />
-                <Link href="/" style={{ height: "10vh" }}><Image src="/goBack.gif" alt="Go Back" width={0} height={0} style={{ height: '100%', width: 'auto' }} /></Link>
-            </div>
-        </main>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '40vh' }}>
+                    <div style={{ height: '30vh', width: '100%'}}>
+                        <ul>
+                            {Array.isArray(lobbies) && lobbies.length > 0 ? (
+                                lobbies.map(lobby => (
+                                    <li key={lobby.id} style={{ marginBottom: '20px' }}>
+                                        <LobbyBox
+                                            name={lobby.name}
+                                            id={lobby.id}
+                                            playerCount={lobby.playerCount+""}
+                                            maxPlayers={"2"}
+                                            onClick={joinLobby}
+                                        />
+                                    </li>
+                                ))
+                            ) : (
+                                <li><Image src="/noLobby.gif" alt="No Lobbies" width={0} height={0} style={{ height: '100%', width: 'auto' }} /></li>
+                            )}
+                        </ul>
+                    </div>
+                    <br />
+                    <div style={{ display: 'flex', alignItems: 'center', height: '10vh' }}>
+                        <label htmlFor="playerName" style={{ height: '100%' }}><Image src="/playerName.gif" alt="Lobby Name" width={0} height={0} style={{ height: '100%', width: 'auto' }} /></label>
+                        <input
+                            id="playerName"
+                            className="border-b-2 border-white"
+                            value={name}
+                            onChange={e => setName(e.target.value)}
+                            style={{width: '50%', marginRight: '10px'}}
+                        />
+                    </div>
+                    <br />
+                    <Link href="/" style={{ height: "10vh" }}><Image src="/goBack.gif" alt="Go Back" width={0} height={0} style={{ height: '100%', width: 'auto' }} /></Link>
+                </div>
+            </main>
+        </>
     );
 }

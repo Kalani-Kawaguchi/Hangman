@@ -3,12 +3,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link'
 import Image from 'next/image'
-import type { Metadata } from 'next'
- 
-export const metadata: Metadata = {
-  title: 'Hangman - Create Lobby',
-  description: 'Create a Lobby for Hangman',
-}
 
 export default function CreateLobby() {
     const [lobbyName, setLobbyName] = useState('');
@@ -47,41 +41,45 @@ export default function CreateLobby() {
     };
 
     return (
-        <main>
-            <div style={{ height: '25vh', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <Image src="/hangman.gif" alt="Hangman" width={0} height={0} style={{ height: 'auto', width: '75vh' }} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '40vh'}}>
-                <form 
-                    onSubmit={handleSubmit}
-                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '30vh'}}
-                >
-                    <div style={{ display: 'flex', alignItems: 'center', height: '10vh'}}>
-                        <label htmlFor="lobbyName" style={{height: '100%'}}><Image src="/lobbyName.gif" alt="Lobby Name" width={0} height={0} style={{ height: '100%', width: 'auto' }}/></label>
-                        <input
-                            id="lobbyName"
-                            className="border-b-2 border-white"
-                            value={lobbyName}
-                            onChange={e => setLobbyName(e.target.value)}
-                            style={{width: '50%', marginRight: '10px'}}
-                        />
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', height: '10vh'}}>
-                        <label htmlFor="playerName" style={{height: '100%'}}><Image src="/playerName.gif" alt="Lobby Name" width={0} height={0} style={{ height: '100%', width: 'auto'}}/></label>
-                        <input
-                            id="playerName"
-                            className="border-b-2 border-white"
-                            value={playerName}
-                            onChange={e => setPlayerName(e.target.value)}
-                            style={{width: '50%', marginRight: '10px'}}
-                        />
-                    </div>
-                    <button type="submit" style={{height: '10vh'}}>
-                        <Image src="/createLobby.gif" alt="Create Lobby" width={0} height={0} style={{ height: '90%', width: 'auto'}}/>
-                    </button>
-                </form>
-                <Link href="/" style={{height: "10vh"}}><Image src="/goBack.gif" alt="Go Back" width={0} height={0} style={{ height: '100%', width: 'auto'}}/></Link>
-            </div>
-        </main>
+        <>
+            <title>Hangman - Create Lobby</title>
+            <meta name="description" content="Create a Lobby for Hangman" />
+            <main>
+                <div style={{ height: '25vh', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <Image src="/hangman.gif" alt="Hangman" width={0} height={0} style={{ height: 'auto', width: '75vh' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '40vh'}}>
+                    <form 
+                        onSubmit={handleSubmit}
+                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '30vh'}}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', height: '10vh'}}>
+                            <label htmlFor="lobbyName" style={{height: '100%'}}><Image src="/lobbyName.gif" alt="Lobby Name" width={0} height={0} style={{ height: '100%', width: 'auto' }}/></label>
+                            <input
+                                id="lobbyName"
+                                className="border-b-2 border-white"
+                                value={lobbyName}
+                                onChange={e => setLobbyName(e.target.value)}
+                                style={{width: '50%', marginRight: '10px'}}
+                            />
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', height: '10vh'}}>
+                            <label htmlFor="playerName" style={{height: '100%'}}><Image src="/playerName.gif" alt="Lobby Name" width={0} height={0} style={{ height: '100%', width: 'auto'}}/></label>
+                            <input
+                                id="playerName"
+                                className="border-b-2 border-white"
+                                value={playerName}
+                                onChange={e => setPlayerName(e.target.value)}
+                                style={{width: '50%', marginRight: '10px'}}
+                            />
+                        </div>
+                        <button type="submit" style={{height: '10vh'}}>
+                            <Image src="/createLobby.gif" alt="Create Lobby" width={0} height={0} style={{ height: '90%', width: 'auto'}}/>
+                        </button>
+                    </form>
+                    <Link href="/" style={{height: "10vh"}}><Image src="/goBack.gif" alt="Go Back" width={0} height={0} style={{ height: '100%', width: 'auto'}}/></Link>
+                </div>
+            </main>
+        </>
     );
 }
