@@ -4,11 +4,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link'
 import Image from 'next/image'
 
-export const metadata = {
-  title: "Hangman - Create Lobby",
-  description: "Create a Lobby for Hangman"
-}
-
 export default function CreateLobby() {
     const [lobbyName, setLobbyName] = useState('');
     const [playerName, setPlayerName] = useState('');

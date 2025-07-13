@@ -4,11 +4,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image'
 import Game from '../../components/Game';
 
-export const metadata = {
-  title: "Hangman - Lobby",
-  description: "Play Hangman"
-}
-
 function useIsMobile(breakpoint = 768) {
     const [isMobile, setIsMobile] = useState(false);
 

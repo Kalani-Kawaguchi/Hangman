@@ -5,11 +5,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import LobbyBox from '../../components/LobbyBox';
 
-export const metadata = {
-  title: "Hangman - Join Lobby",
-  description: "Join a Lobby to Play Hangman"
-}
-
 type Lobby = {
     id: string;
     name: string;
