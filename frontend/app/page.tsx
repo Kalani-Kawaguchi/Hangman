@@ -1,19 +1,14 @@
-'use client'
 import Link from 'next/link'
 import Image from 'next/image'
-import Head from 'next/head';
-import { useEffect } from 'react';
+
+export const metadata = {
+  title: "Hangman",
+  description: "Multiplayer Hangman built with Go + React"
+}
 
 export default function Home() {
-  useEffect(() => {
-    document.title = "Hangman"
-  }, []);
   return (
     <>
-      <Head>
-        <title>{document.title}</title>
-        <meta name="description" content="Multiplayer Hangman built with Go + React" />
-      </Head>
       <main style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', justifyContent: 'flex-start' }}>
         <div style={{ height: '25vh', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <Image src="/hangman.gif" alt="Hangman" width={0} height={0} style={{ height: 'auto', width: '75vh' }} />
