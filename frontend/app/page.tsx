@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import Image from 'next/image'
 
+document.title="Hangman"
+
 export default function Home() {
   return (
     <>
