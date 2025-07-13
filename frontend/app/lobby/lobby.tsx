@@ -3,7 +3,12 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image'
 import Game from '../../components/Game';
-import Head from 'next/head';
+import type { Metadata } from 'next'
+ 
+export const metadata: Metadata = {
+  title: 'Hangman - Lobby',
+  description: 'Play Hangman',
+}
 
 function useIsMobile(breakpoint = 768) {
     const [isMobile, setIsMobile] = useState(false);
@@ -416,178 +421,172 @@ export default function Lobby() {
 
 
     return (
-        <>
-            <Head>
-                <title>Hangman - Lobby</title>
-                <meta name="description" content="Play Hangman" />
-            </Head>
-            < main >
-                {/* Banner */}
-                <div style={{ height: '25vh', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <Image src="/hangman.gif" alt="Hangman" width={0} height={0} style={{ height: 'auto', width: '75vh' }} />
-                </div>
+        < main >
+            {/* Banner */}
+            <div style={{ height: '25vh', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <Image src="/hangman.gif" alt="Hangman" width={0} height={0} style={{ height: 'auto', width: '75vh' }} />
+            </div>
 
-                {/* Game Section */}
-                <div style={{ display: 'flex', flexDirection: 'row' }}>
-                    {isHost ? (
-                        <>
-                            {/* Always show your game */}
-                            <div style={{ flex: 1, padding: '1rem', borderRight: '1px solid #ccc' }}>
-                                <Game
-                                    playerName={playerName}
-                                    revealedWord={(lobbyState === 'waiting' || (lobbyState === 'ended' && p1Restarted)) ? currentWord : revealedWord}
-                                    attemptsLeft={attemptsLeft}
-                                    guessedLetters={guessedLetters}
-                                    instruction={instruction}
-                                    isMobile={isMobile}
-                                    guessing={lobbyState === 'playing' || lobbyState === 'ended'}
+            {/* Game Section */}
+            <div style={{ display: 'flex', flexDirection: 'row' }}>
+                {isHost ? (
+                    <>
+                        {/* Always show your game */}
+                        <div style={{ flex: 1, padding: '1rem', borderRight: '1px solid #ccc' }}>
+                            <Game
+                                playerName={playerName}
+                                revealedWord={(lobbyState === 'waiting' || (lobbyState === 'ended' && p1Restarted)) ? currentWord : revealedWord}
+                                attemptsLeft={attemptsLeft}
+                                guessedLetters={guessedLetters}
+                                instruction={instruction}
+                                isMobile={isMobile}
+                                guessing={lobbyState === 'playing' || lobbyState === 'ended'}
+                            />
+                            {isMobile && (
+                                <input
+                                    id="mobileKeyboardInput"
+                                    type="text"
+                                    inputMode="text"
+                                    autoFocus
+                                    onBlur={(e) => e.target.focus()} // re-focus if it blurs
+                                    onChange={() => { }} // prevents React warning
+                                    onKeyDown={(e) => handleKeyDown(e.nativeEvent)}
+                                    style={{
+                                        position: 'absolute',
+                                        bottom: 0,
+                                        left: 0,
+                                        width: '1px',
+                                        height: '1px',
+                                        opacity: 0,
+                                        zIndex: -1,
+                                        pointerEvents: 'none',
+                                    }}
                                 />
-                                {isMobile && (
-                                    <input
-                                        id="mobileKeyboardInput"
-                                        type="text"
-                                        inputMode="text"
-                                        autoFocus
-                                        onBlur={(e) => e.target.focus()} // re-focus if it blurs
-                                        onChange={() => { }} // prevents React warning
-                                        onKeyDown={(e) => handleKeyDown(e.nativeEvent)}
-                                        style={{
-                                            position: 'absolute',
-                                            bottom: 0,
-                                            left: 0,
-                                            width: '1px',
-                                            height: '1px',
-                                            opacity: 0,
-                                            zIndex: -1,
-                                            pointerEvents: 'none',
-                                        }}
-                                    />
-                                )}
-                                {instruction === 'Enter a word for your opponent to guess:' ? (
-                                    <div className="flex justify-center-safe w-full">
-                                        <button className="flex justify-center" onClick={handleSubmitWord}>
-                                            <img className="w-[40%]" src="/submitWord.gif" />
-                                        </button>
-                                    </div>
-                                ) : null}
-                                {(instruction == 'You win!' || instruction == 'Game Over! The word was:') ? (
-                                    <div className="flex justify-center-safe w-full">
-                                        <button className="flex justify-center" onClick={handleRestart}>
-                                            <Image className="w-[40%]" src="/PlayAgain.gif" alt="Play again button" width={0} height={0} />
-                                        </button>
-                                    </div>
-
-                                ) : (
-                                    <div></div>
-                                )}
-                                <br />
-                            </div>
-
-                            {/* Only show opponent game if NOT on mobile */}
-                            {!isMobile && (
-                                <div style={{ flex: 1, padding: '1rem', borderLeft: '1px solid #ccc' }}>
-                                    {opponentExists ? (
-                                        <Game
-                                            playerName={opponentName}
-                                            revealedWord={isP2Restarted.current ? "" : opponentRevealed}
-                                            attemptsLeft={opponentAttempts}
-                                            guessedLetters={opponentGuessedLetters}
-                                            instruction={opponentInstruction}
-                                            isMobile={isMobile}
-                                            guessing={lobbyState === 'playing' || lobbyState === 'ended'}
-                                        />
-
-                                    ) : (
-                                        <div className="flex justify-center items-center h-full w-full">
-                                            <Image src="/WaitingForOpponent.gif" alt="Waiting for an opponent" width={500} height={500} />
-                                        </div>
-                                    )}
-                                </div>
                             )}
-                        </>
-                    ) : (
-                        <>
+                            {instruction === 'Enter a word for your opponent to guess:' ? (
+                                <div className="flex justify-center-safe w-full">
+                                    <button className="flex justify-center" onClick={handleSubmitWord}>
+                                        <img className="w-[40%]" src="/submitWord.gif" />
+                                    </button>
+                                </div>
+                            ) : null}
+                            {(instruction == 'You win!' || instruction == 'Game Over! The word was:') ? (
+                                <div className="flex justify-center-safe w-full">
+                                    <button className="flex justify-center" onClick={handleRestart}>
+                                        <Image className="w-[40%]" src="/PlayAgain.gif" alt="Play again button" width={0} height={0} />
+                                    </button>
+                                </div>
 
-                            {/* Only show opponent game if NOT on mobile */}
-                            {!isMobile && (
-                                <div style={{ flex: 1, padding: '1rem', borderRight: '1px solid #ccc' }}>
+                            ) : (
+                                <div></div>
+                            )}
+                            <br />
+                        </div>
+
+                        {/* Only show opponent game if NOT on mobile */}
+                        {!isMobile && (
+                            <div style={{ flex: 1, padding: '1rem', borderLeft: '1px solid #ccc' }}>
+                                {opponentExists ? (
                                     <Game
                                         playerName={opponentName}
-                                        revealedWord={isP1Restarted.current ? "" : opponentRevealed}
+                                        revealedWord={isP2Restarted.current ? "" : opponentRevealed}
                                         attemptsLeft={opponentAttempts}
                                         guessedLetters={opponentGuessedLetters}
                                         instruction={opponentInstruction}
                                         isMobile={isMobile}
                                         guessing={lobbyState === 'playing' || lobbyState === 'ended'}
                                     />
-                                </div>
-                            )}
 
-                            {/* Always show your game */}
-                            <div style={{ flex: 1, padding: '1rem', borderLeft: '1px solid #ccc' }}>
+                                ) : (
+                                    <div className="flex justify-center items-center h-full w-full">
+                                        <Image src="/WaitingForOpponent.gif" alt="Waiting for an opponent" width={500} height={500} />
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </>
+                ) : (
+                    <>
+
+                        {/* Only show opponent game if NOT on mobile */}
+                        {!isMobile && (
+                            <div style={{ flex: 1, padding: '1rem', borderRight: '1px solid #ccc' }}>
                                 <Game
-                                    playerName={playerName}
-                                    revealedWord={(lobbyState === 'waiting' || (lobbyState === 'ended' && p2Restarted)) ? currentWord : revealedWord}
-                                    attemptsLeft={attemptsLeft}
-                                    guessedLetters={guessedLetters}
-                                    instruction={instruction}
+                                    playerName={opponentName}
+                                    revealedWord={isP1Restarted.current ? "" : opponentRevealed}
+                                    attemptsLeft={opponentAttempts}
+                                    guessedLetters={opponentGuessedLetters}
+                                    instruction={opponentInstruction}
                                     isMobile={isMobile}
                                     guessing={lobbyState === 'playing' || lobbyState === 'ended'}
                                 />
-                                {isMobile && (
-                                    <input
-                                        id="mobileKeyboardInput"
-                                        type="text"
-                                        inputMode="text"
-                                        autoFocus
-                                        onBlur={(e) => e.target.focus()} // re-focus if it blurs
-                                        onChange={() => { }} // prevents React warning
-                                        onKeyDown={(e) => handleKeyDown(e.nativeEvent)}
-                                        style={{
-                                            position: 'absolute',
-                                            bottom: 0,
-                                            left: 0,
-                                            width: '1px',
-                                            height: '1px',
-                                            opacity: 0,
-                                            zIndex: -1,
-                                            pointerEvents: 'none',
-                                        }}
-                                    />
-                                )}
-                                {instruction === 'Enter a word for your opponent to guess:' ? (
-                                    < div className="flex justify-center w-full">
-                                        <button className="flex justify-center" onClick={handleSubmitWord}>
-                                            <img className="w-[40%]" src="/submitWord.gif" />
-                                        </button>
-                                    </div>
-                                ) : null}
-                                {(instruction == 'You win!' || instruction == 'Game Over! The word was:') ? (
-                                    <div className="flex justify-center-safe">
-                                        <button className="flex justify-center" onClick={handleRestart}>
-                                            <Image className="w-[40%]" src="/PlayAgain.gif" alt="Play again button" width={0} height={0} />
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div></div>
-                                )}
-                                <br />
                             </div>
-                        </>
-                    )}
-                    <style>{`
-                    @keyframes blink {
-                    0%, 100% { opacity: 1; }
-                    50% { opacity: 0; }
-                    }
-            `}</style>
-                </div>
+                        )}
 
-                {/*Leave Button */}
-                <div className="mt-5 w-[20%]" >
-                    <button onClick={handleLeave}><img src="/leaveLobby.gif" /></button>
-                </div>
-            </main >
-        </>
+                        {/* Always show your game */}
+                        <div style={{ flex: 1, padding: '1rem', borderLeft: '1px solid #ccc' }}>
+                            <Game
+                                playerName={playerName}
+                                revealedWord={(lobbyState === 'waiting' || (lobbyState === 'ended' && p2Restarted)) ? currentWord : revealedWord}
+                                attemptsLeft={attemptsLeft}
+                                guessedLetters={guessedLetters}
+                                instruction={instruction}
+                                isMobile={isMobile}
+                                guessing={lobbyState === 'playing' || lobbyState === 'ended'}
+                            />
+                            {isMobile && (
+                                <input
+                                    id="mobileKeyboardInput"
+                                    type="text"
+                                    inputMode="text"
+                                    autoFocus
+                                    onBlur={(e) => e.target.focus()} // re-focus if it blurs
+                                    onChange={() => { }} // prevents React warning
+                                    onKeyDown={(e) => handleKeyDown(e.nativeEvent)}
+                                    style={{
+                                        position: 'absolute',
+                                        bottom: 0,
+                                        left: 0,
+                                        width: '1px',
+                                        height: '1px',
+                                        opacity: 0,
+                                        zIndex: -1,
+                                        pointerEvents: 'none',
+                                    }}
+                                />
+                            )}
+                            {instruction === 'Enter a word for your opponent to guess:' ? (
+                                < div className="flex justify-center w-full">
+                                    <button className="flex justify-center" onClick={handleSubmitWord}>
+                                        <img className="w-[40%]" src="/submitWord.gif" />
+                                    </button>
+                                </div>
+                            ) : null}
+                            {(instruction == 'You win!' || instruction == 'Game Over! The word was:') ? (
+                                <div className="flex justify-center-safe">
+                                    <button className="flex justify-center" onClick={handleRestart}>
+                                        <Image className="w-[40%]" src="/PlayAgain.gif" alt="Play again button" width={0} height={0} />
+                                    </button>
+                                </div>
+                            ) : (
+                                <div></div>
+                            )}
+                            <br />
+                        </div>
+                    </>
+                )}
+                <style>{`
+                @keyframes blink {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0; }
+                }
+        `}</style>
+            </div>
+
+            {/*Leave Button */}
+            <div className="mt-5 w-[20%]" >
+                <button onClick={handleLeave}><img src="/leaveLobby.gif" /></button>
+            </div>
+        </main >
     )
 }
