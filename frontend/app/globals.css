@@ -36,6 +36,11 @@ input {
     font-size: 40px;
 }
 
+p {
+    font-family: handwritten;
+    font-size: 40px;
+}
+
 #guessedLetters {
     font-family: handwritten;
     font-size: 40px;

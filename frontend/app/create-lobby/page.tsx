@@ -7,6 +7,7 @@ import Image from 'next/image'
 export default function CreateLobby() {
     const [lobbyName, setLobbyName] = useState('');
     const [playerName, setPlayerName] = useState('');
+    const [loading, setLoading] = useState(false);
     const router = useRouter();
 
     interface CreateLobbyRequest {
@@ -25,6 +26,7 @@ export default function CreateLobby() {
             return;
         }
         e.preventDefault();
+        setLoading(true);
         const body: CreateLobbyRequest = { lobby_name: lobbyName, host_name: playerName };
         const res: Response = await fetch('/api/create-lobby', {
             method: 'POST',
@@ -36,6 +38,7 @@ export default function CreateLobby() {
             const lobby: CreateLobbyResponse = await res.json();
             router.push(`/lobby?lobby=${lobby.id}&playerID=${lobby.playerID}`);
         } else {
+            setLoading(false);
             alert('Failed to create lobby');
         }
     };
@@ -47,34 +50,41 @@ export default function CreateLobby() {
                         <Image src="/hangman.gif" alt="Hangman" width={0} height={0} style={{ height: 'auto', width: '75vh' }} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '40vh'}}>
-                    <form 
-                        onSubmit={handleSubmit}
-                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '30vh'}}
-                    >
-                        <div style={{ display: 'flex', alignItems: 'center', height: '10vh'}}>
-                            <label htmlFor="lobbyName" style={{height: '100%'}}><Image src="/lobbyName.gif" alt="Lobby Name" width={0} height={0} style={{ height: '100%', width: 'auto' }}/></label>
-                            <input
-                                id="lobbyName"
-                                className="border-b-2 border-white"
-                                value={lobbyName}
-                                onChange={e => setLobbyName(e.target.value)}
-                                style={{width: '50%', marginRight: '10px'}}
-                            />
+                    {loading ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '30vh'}}>
+                            <Image src="/spinner.gif" alt="Loading..." width={0} height={0} style={{ height: '100%', width: 'auto' }}/>
+                            <p>Creating lobby, please wait...</p>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', height: '10vh'}}>
-                            <label htmlFor="playerName" style={{height: '100%'}}><Image src="/playerName.gif" alt="Lobby Name" width={0} height={0} style={{ height: '100%', width: 'auto'}}/></label>
-                            <input
-                                id="playerName"
-                                className="border-b-2 border-white"
-                                value={playerName}
-                                onChange={e => setPlayerName(e.target.value)}
-                                style={{width: '50%', marginRight: '10px'}}
-                            />
-                        </div>
-                        <button type="submit" style={{height: '10vh'}}>
-                            <Image src="/createLobby.gif" alt="Create Lobby" width={0} height={0} style={{ height: '90%', width: 'auto'}}/>
-                        </button>
-                    </form>
+                    ) : (
+                        <form 
+                            onSubmit={handleSubmit}
+                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '30vh'}}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', height: '10vh'}}>
+                                <label htmlFor="lobbyName" style={{height: '100%'}}><Image src="/lobbyName.gif" alt="Lobby Name" width={0} height={0} style={{ height: '100%', width: 'auto' }}/></label>
+                                <input
+                                    id="lobbyName"
+                                    className="border-b-2 border-white"
+                                    value={lobbyName}
+                                    onChange={e => setLobbyName(e.target.value)}
+                                    style={{width: '50%', marginRight: '10px'}}
+                                />
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', height: '10vh'}}>
+                                <label htmlFor="playerName" style={{height: '100%'}}><Image src="/playerName.gif" alt="Lobby Name" width={0} height={0} style={{ height: '100%', width: 'auto'}}/></label>
+                                <input
+                                    id="playerName"
+                                    className="border-b-2 border-white"
+                                    value={playerName}
+                                    onChange={e => setPlayerName(e.target.value)}
+                                    style={{width: '50%', marginRight: '10px'}}
+                                />
+                            </div>
+                            <button type="submit" style={{height: '10vh'}}>
+                                <Image src="/createLobby.gif" alt="Create Lobby" width={0} height={0} style={{ height: '90%', width: 'auto'}}/>
+                            </button>
+                        </form>
+                    )}
                     <Link href="/" style={{height: "10vh"}}><Image src="/goBack.gif" alt="Go Back" width={0} height={0} style={{ height: '100%', width: 'auto'}}/></Link>
                 </div>
             </main>
