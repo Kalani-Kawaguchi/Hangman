@@ -68,7 +68,7 @@ export default function JoinLobby() {
                     <Image src="/lobbies.gif" alt="Lobbies" width={0} height={0} style={{ height: '100%', width: 'auto' }} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '40vh' }}>
-                    <div style={{ height: '30vh', width: '100%'}}>
+                    <div style={{ height: '30vh', width: '100%' }}>
                         <ul>
                             {Array.isArray(lobbies) && lobbies.length > 0 ? (
                                 lobbies.map(lobby => (
@@ -76,14 +76,22 @@ export default function JoinLobby() {
                                         <LobbyBox
                                             name={lobby.name}
                                             id={lobby.id}
-                                            playerCount={lobby.playerCount+""}
+                                            playerCount={lobby.playerCount + ""}
                                             maxPlayers={"2"}
                                             onClick={joinLobby}
                                         />
                                     </li>
                                 ))
                             ) : (
-                                <li><Image src="/noLobby.gif" alt="No Lobbies" width={0} height={0} style={{ height: '100%', width: 'auto' }} /></li>
+                                <li style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                                    <Image
+                                        src="/noLobby.gif"
+                                        alt="No Lobbies"
+                                        width={0}
+                                        height={0}
+                                        style={{ height: '100%', width: 'auto' }}
+                                    />
+                                </li>
                             )}
                         </ul>
                     </div>
@@ -95,7 +103,7 @@ export default function JoinLobby() {
                             className="border-b-2 border-white"
                             value={name}
                             onChange={e => setName(e.target.value)}
-                            style={{width: '50%', marginRight: '10px'}}
+                            style={{ width: '50%', marginRight: '10px' }}
                         />
                     </div>
                     <br />
